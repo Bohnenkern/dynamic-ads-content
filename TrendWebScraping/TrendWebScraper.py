@@ -3,13 +3,18 @@ from pytrends.request import TrendReq
 import openai
 
 class TrendScraper:
-    def __init__(self, country: str, json_file: str = "trends.json"):
+    def __init__(self, country: str, json_file: str | None = None):
         """
         country: ISO-Ländercode, z.B. 'DE', 'US', 'FR'
         json_file: Name der Datei, in der Trends gespeichert werden
         """
         self.country = country.upper()   # Realtime API nutzt ISO-Codes
-        self.json_file = json_file
+        # Default: write to backend/trends.json relative to repo root
+        if json_file:
+            self.json_file = json_file
+        else:
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            self.json_file = os.path.join(repo_root, 'backend', 'trends.json')
         self.trends = {}
 
     def scrape_trends(self):

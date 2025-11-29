@@ -6,12 +6,17 @@ from typing import List, Dict
 
 
 class GoogleTrendsScraper:
-    def __init__(self, country: str = "US", json_file: str = "google_trends.json"):
+    def __init__(self, country: str = "US", json_file: str | None = None):
         """
         country: ISO Code oder Google Trends Geo-Code (DE, US, ...)
         """
         self.country = country.upper()
-        self.json_file = json_file
+        # Default JSON file path: backend/google_trends.json relative to repo root
+        if json_file:
+            self.json_file = json_file
+        else:
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            self.json_file = os.path.join(repo_root, 'backend', 'google_trends.json')
         self.trends = {}
 
         # RSS Feed URL

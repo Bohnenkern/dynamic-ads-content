@@ -72,6 +72,15 @@ def estimate_tokens_from_string(s: str) -> int:
     """
     return math.ceil(len(s) / 4)
 
+    # Helper: trim content to first { ... last }
+def _trim_to_first_last_braces(text: str) -> str:
+    if not text:
+        return text
+    first = text.find('{')
+    last = text.rfind('}')
+    if first == -1 or last == -1 or last < first:
+        return text
+    return text[first:last+1]
 
 def filter_data_with_openai(
     data: Any,
@@ -130,24 +139,44 @@ def filter_data_with_openai(
     else:
         raise RuntimeError('Installed openai package does not expose a usable chat API')
 
-    # Try parse JSON
+
+
+    # Try parse JSON (raw), fallback to trimmed content if necessary
     try:
+        if not api_output:
+            api_output= os.path.join(os.path.dirname(__file__), 'filtered_trends.json')
         parsed = json.loads(content)
         if api_output:
             with open(api_output, 'w', encoding='utf-8') as fh:
                 json.dump(parsed, fh, indent=2, ensure_ascii=False)
         return parsed
     except Exception:
-        # Not JSON, write raw string if requested
-        if api_output:
-            with open(api_output, 'w', encoding='utf-8') as fh:
-                fh.write(content)
-        return content
+        # Not JSON; try trimming everything before the first '{' and after the last '}' and parse again
+        trimmed = _trim_to_first_last_braces(content)
+        try:
+            parsed = json.loads(trimmed)
+            if api_output:
+                with open(api_output, 'w', encoding='utf-8') as fh:
+                    json.dump(parsed, fh, indent=2, ensure_ascii=False)
+            # Also write the sanitized prompt/response for inspection
+            try:
+                with open(os.path.join(os.path.dirname(__file__), 'api_response_trimmed.txt'), 'w', encoding='utf-8') as ftrim:
+                    ftrim.write(trimmed)
+            except Exception:
+                pass
+            return parsed
+        except Exception:
+            # Not JSON, write raw string if requested
+            if api_output:
+                with open(api_output, 'w', encoding='utf-8') as fh:
+                    fh.write(content)
+            return content
 
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Create a single ChatGPT prompt from a JSON file")
-    parser.add_argument('json_file', nargs='?', default='trends.json', help='Path to the JSON file (defaults to trends.json)')
+    default_json = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'backend', 'trends.json')
+    parser.add_argument('json_file', nargs='?', default=default_json, help=f'Path to the JSON file (defaults to {default_json})')
     parser.add_argument('--output', '-o', default=None, help='Write prompt to this file instead of printing')
     parser.add_argument('--instruction', '-i', default=None, help='Instruction text for ChatGPT (optional)')
     parser.add_argument('--filter-trends', dest='filter_trends', action='store_true', help='Use the built-in filter-for-marketing instruction (recommended for trends.json)')

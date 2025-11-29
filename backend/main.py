@@ -17,7 +17,7 @@ from filter_trends import filter_data_with_openai
 def main():
     # ---------------- Google Trends ----------------
 
-    scraper = GoogleTrendsScraper(json_file="google_trends.json")
+    scraper = GoogleTrendsScraper()
     
     # Länderliste definieren
     countries = ["DE", "US", "FR", "GB", "IT", "ES", "JP", "BR", "CA", "AU"]
@@ -37,11 +37,11 @@ def main():
         instruction = (
             "From the following trending topics, find those which are suitable to be merged into general marketing campaigns. "
             "The connection may be broad. Hard constraints are for example, but not limited to: topics that are negative, political, religious, racist, sexist, illegal, associated with certain people, drugs or weapons. "
-            "Return them in the same form, just delete the unsuitable ones."
+            "Return them in the same form, just delete the unsuitable ones. in that sense, make sure to only return a valid JSON object with the same keys as the input, but only the filtered trends as values."
         )
         try:
             print("Calling filter_data_with_openai with current trends and OPENAI_API_KEY...")
-            filtered = filter_data_with_openai(trends, instruction=instruction, api_key=api_key, api_output='filtered_trends.json')
+            filtered = filter_data_with_openai(trends, instruction=instruction, api_key=api_key)
             print('Filtered trends (from API):')
             print(filtered)
         except Exception as e:
