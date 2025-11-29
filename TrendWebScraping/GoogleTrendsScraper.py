@@ -28,6 +28,8 @@ class GoogleTrendsScraper:
             json.dump(self.trends, f, ensure_ascii=False, indent=4)
 
         print(f"{len(self.trends)} Google Trends erfolgreich gespeichert!")
+        # Return the trends dict so callers can use it directly (e.g., for filtering)
+        return self.trends
 
     def print_trends(self):
         if not self.trends:

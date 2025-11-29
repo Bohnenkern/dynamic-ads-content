@@ -1,5 +1,12 @@
-from GoogleTrendsScraper import GoogleTrendsScraper
-from TwitterTrendsScraper import TwitterTrendsScraper
+import os, sys
+
+# Ensure repo root is on sys.path
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
+from TrendWebScraping.GoogleTrendsScraper import GoogleTrendsScraper
+from TrendWebScraping.TwitterTrendsScraper import TwitterTrendsScraper
 
 def main():
     # ---------------- Google Trends ----------------

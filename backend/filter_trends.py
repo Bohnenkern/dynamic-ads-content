@@ -19,7 +19,7 @@ import os
 import sys
 from typing import Any, Optional
 from dotenv import load_dotenv
-import openai
+import importlib
 
 
 def read_json_file(path: str) -> Any:
@@ -40,11 +40,6 @@ def build_prompt(data: Any, instruction: Optional[str] = None, pretty: bool = Tr
     """
     # Default instruction: neutral summary
     default_instruction = (
-        "Please analyze the following JSON and provide a concise summary of its structure and key values."
-    )
-
-    # Preset instruction for filtering trends into marketing-safe topics
-    filter_trends_instruction = (
         "From the following trending topics, find those which are suitable to be merged into general marketing campaigns. "
         "The connection may be broad. Hard constraints include (but are not limited to): topics that are negative, political, religious, racist, sexist, illegal, associated with certain people, drugs or weapons are NOT suitable. "
         "Return the results in the same JSON form, but delete the unsuitable entries."
@@ -76,6 +71,69 @@ def estimate_tokens_from_string(s: str) -> int:
     Different models and languages may vary; adjust if needed.
     """
     return math.ceil(len(s) / 4)
+
+
+def filter_data_with_openai(
+    data: Any,
+    instruction: Optional[str] = None,
+    model: str = 'gpt-4o-mini',
+    temperature: float = 0.0,
+    api_key: Optional[str] = None,
+    api_output: Optional[str] = None,
+) -> Any:
+    """Builds the prompt from data and calls the OpenAI Chat API, returning parsed JSON or raw text.
+
+    If `api_key` is not provided, the function tries to read `OPENAI_API_KEY` from environment.
+    Returns: parsed JSON (dict/list) if the model returns valid JSON, otherwise returns raw string.
+    """
+    prompt = build_prompt(data, instruction=instruction, pretty=True, wrap=True)
+
+    # Load env .env and fallback to environment variable
+    load_dotenv()
+    if not api_key:
+        api_key = os.getenv('OPENAI_API_KEY')
+
+    if not api_key:
+        raise RuntimeError('OPENAI_API_KEY not provided; pass api_key or set environment variable.')
+
+    try:
+        openai_mod = importlib.import_module('openai')
+    except Exception as e:
+        raise RuntimeError('openai package not installed') from e
+
+    # Use new OpenAI client if available
+    if hasattr(openai_mod, 'OpenAI'):
+        client = openai_mod.OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature,
+        )
+        content = response.choices[0].message.content
+    elif hasattr(openai_mod, 'ChatCompletion'):
+        openai_mod.api_key = api_key
+        legacy_resp = openai_mod.ChatCompletion.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature,
+        )
+        content = legacy_resp['choices'][0]['message']['content']
+    else:
+        raise RuntimeError('Installed openai package does not expose a usable chat API')
+
+    # Try parse JSON
+    try:
+        parsed = json.loads(content)
+        if api_output:
+            with open(api_output, 'w', encoding='utf-8') as fh:
+                json.dump(parsed, fh, indent=2, ensure_ascii=False)
+        return parsed
+    except Exception:
+        # Not JSON, write raw string if requested
+        if api_output:
+            with open(api_output, 'w', encoding='utf-8') as fh:
+                fh.write(content)
+        return content
 
 
 def main(argv: Optional[list[str]] = None) -> int:
