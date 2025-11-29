@@ -1,7 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
 
-app = FastAPI(title="Dynamic Ads Content API")
+from services.trend_analysis import trend_service
+from routers import trends
+
+# Logging konfigurieren
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle-Handler für Startup und Shutdown"""
+    # Startup: Trendanalyse beim Start initialisieren
+    logger.info("Starte Dynamic Ads Content API...")
+    logger.info("Initialisiere Trendanalyse...")
+    await trend_service.fetch_user_interests()
+    logger.info("Trendanalyse erfolgreich initialisiert")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Beende Dynamic Ads Content API...")
+
+
+app = FastAPI(
+    title="Dynamic Ads Content API",
+    lifespan=lifespan
+)
 
 # CORS-Konfiguration für Frontend
 app.add_middleware(
@@ -11,6 +42,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Router einbinden
+app.include_router(trends.router, prefix="/api/v1", tags=["trends"])
 
 
 @app.get("/")
