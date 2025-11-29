@@ -1,11 +1,15 @@
+from routers import trends, users
+from services.user_data import user_service
+from services.trend_analysis import trend_service
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+from dotenv import load_dotenv
 
-from services.trend_analysis import trend_service
-from services.user_data import user_service
-from routers import trends, users
+# Load environment variables from .env file
+load_dotenv()
+
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -20,18 +24,18 @@ async def lifespan(app: FastAPI):
     """Lifecycle-Handler für Startup und Shutdown"""
     # Startup
     logger.info("Starte Dynamic Ads Content API...")
-    
+
     # Lade User-Daten
     logger.info("Lade User-Daten...")
     user_service.load_users()
-    
+
     # Initialisiere Trendanalyse
     logger.info("Initialisiere Trendanalyse...")
     await trend_service.fetch_user_interests()
     logger.info("Trendanalyse erfolgreich initialisiert")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Beende Dynamic Ads Content API...")
 

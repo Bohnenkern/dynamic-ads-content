@@ -27,4 +27,32 @@ api.interceptors.response.use(
   }
 )
 
+// Campaign Generation API
+export const generateCampaign = async (campaignData) => {
+  const formData = new FormData()
+  formData.append('product_image', campaignData.image)
+  formData.append('product_description', campaignData.product_description)
+  formData.append('campaign_theme', campaignData.campaign_theme)
+  formData.append('company_values', JSON.stringify(campaignData.company_values))
+
+  const response = await api.post('/api/v1/campaign/generate', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return response.data
+}
+
+// Get all users
+export const getAllUsers = async () => {
+  const response = await api.get('/api/v1/users')
+  return response.data
+}
+
+// Get user by ID
+export const getUserById = async (userId) => {
+  const response = await api.get(`/api/v1/users/${userId}`)
+  return response.data
+}
+
 export default api

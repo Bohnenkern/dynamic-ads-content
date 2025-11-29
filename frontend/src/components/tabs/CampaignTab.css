@@ -4,7 +4,7 @@
 
 .campaign-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .campaign-header h1 {
@@ -20,10 +20,102 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Campaign Info Cards */
+.campaign-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.info-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.info-content h3 {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.info-content p {
+  font-size: 1rem;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
 .campaign-content {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+
+/* Error and Success Messages */
+.error-message,
+.success-message {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message {
+  background: #fee;
+  border: 2px solid #ef4444;
+  color: #991b1b;
+}
+
+.success-message {
+  background: #f0fdf4;
+  border: 2px solid #10b981;
+  color: #065f46;
+}
+
+.error-message svg,
+.success-message svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-message h4,
+.success-message h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.error-message p,
+.success-message p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.success-message small {
+  display: block;
+  margin-top: 0.5rem;
+  opacity: 0.8;
 }
 
 .campaign-actions {
@@ -50,14 +142,19 @@
   letter-spacing: 0.5px;
 }
 
-.run-campaign-button:hover {
+.run-campaign-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #5568d3 0%, #653a8f 100%);
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
-.run-campaign-button:active {
+.run-campaign-button:active:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.run-campaign-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .run-campaign-button svg {
@@ -65,11 +162,40 @@
   height: 24px;
 }
 
+/* Loading Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

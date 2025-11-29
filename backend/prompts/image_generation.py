@@ -59,28 +59,25 @@ class ImageGenerationService:
                 f"Generating image with Black Forest for User {user_id}")
             logger.info(f"Prompt preview: {prompt_str[:150]}...")
 
-            # TODO: Real Black Forest Labs API Integration
-            # async with httpx.AsyncClient() as client:
-            #     response = await client.post(
-            #         "https://api.bfl.ml/v1/flux-pro-1.1",
-            #         headers={
-            #             "X-Key": self.black_forest_api_key,
-            #             "Content-Type": "application/json"
-            #         },
-            #         json={
-            #             "prompt": prompt_str,
-            #             "width": width,
-            #             "height": height,
-            #             "prompt_upsampling": False,
-            #             "safety_tolerance": 2
-            #         },
-            #         timeout=60.0
-            #     )
-            #     result = response.json()
-            #     image_url = result.get("result", {}).get("sample")
-
-            # Placeholder response
-            image_url = f"https://placeholder.com/ads/{user_id}_{product_name}.jpg"
+            # Real Black Forest Labs API Integration
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.bfl.ml/v1/flux-pro-1.1",
+                    headers={
+                        "X-Key": self.black_forest_api_key,
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "prompt": prompt_str,
+                        "width": width,
+                        "height": height,
+                        "prompt_upsampling": False,
+                        "safety_tolerance": 2
+                    },
+                    timeout=60.0
+                )
+                result = response.json()
+                image_url = result.get("result", {}).get("sample")
 
             result = {
                 "user_id": user_id,
@@ -145,6 +142,110 @@ class ImageGenerationService:
 
         return final_prompt
 
+    async def generate_image_for_trend(
+        self,
+        prompt: Union[str, Dict[str, Any]],
+        trend_category: str,
+        product_name: str = "product",
+        width: int = 1024,
+        height: int = 768
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generates an image for a specific trend category
+
+        Args:
+            prompt: Optimized prompt for image generation
+            trend_category: The trend category this image represents
+            product_name: Name of the product being advertised
+            width: Image width
+            height: Image height
+
+        Returns:
+            Dictionary with image_url and metadata including trend_category
+        """
+        if not self.black_forest_api_key:
+            logger.warning(
+                "Black Forest API Key missing - Image generation skipped")
+            return None
+
+        try:
+            # Convert structured prompt to string if needed
+            if isinstance(prompt, dict):
+                prompt_str = self._format_structured_prompt(prompt)
+            else:
+                prompt_str = prompt
+
+            logger.info(
+                f"Generating image for trend category: {trend_category}")
+            logger.info(f"Prompt preview: {prompt_str[:150]}...")
+
+            # Real Black Forest Labs API Integration
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.bfl.ml/v1/flux-pro-1.1",
+                    headers={
+                        "X-Key": self.black_forest_api_key,
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "prompt": prompt_str,
+                        "width": width,
+                        "height": height,
+                        "prompt_upsampling": False,
+                        "safety_tolerance": 2
+                    },
+                    timeout=60.0
+                )
+                result = response.json()
+                image_url = result.get("result", {}).get("sample")
+
+            result_data = {
+                "trend_category": trend_category,
+                "product_name": product_name,
+                "image_url": image_url,
+                "prompt_used": prompt_str,
+                "dimensions": {"width": width, "height": height},
+                "status": "generated"
+            }
+
+            logger.info(
+                f"Image generated successfully for trend: {trend_category}")
+            return result_data
+
+        except Exception as e:
+            logger.error(
+                f"Error in Black Forest API call for trend {trend_category}: {str(e)}")
+            return None
+
+    async def generate_images_for_trends(
+        self,
+        trend_prompts: Dict[str, str],
+        product_name: str = "product"
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Generates images for multiple trend categories
+
+        Args:
+            trend_prompts: Dictionary with trend_category -> prompt mappings
+            product_name: Name of the product being advertised
+
+        Returns:
+            Dictionary with trend_category -> result mappings (containing image_url and metadata)
+        """
+        results = {}
+
+        for trend_category, prompt in trend_prompts.items():
+            result = await self.generate_image_for_trend(
+                prompt=prompt,
+                trend_category=trend_category,
+                product_name=product_name
+            )
+            if result:
+                results[trend_category] = result
+
+        logger.info(f"Generated images for {len(results)} trend categories")
+        return results
+
     async def generate_images_for_users(
         self,
         structured_prompts: Union[Dict[int, Dict[str, Any]], Dict[int, str]],
@@ -183,6 +284,24 @@ class ImageGenerationService:
         """Returns all cached image results"""
         return self.generated_images
 
+    def cache_trend_image(self, trend_category: str, image_data: Dict[str, Any]):
+        """Caches an image for a specific trend category"""
+        if not hasattr(self, 'trend_images'):
+            self.trend_images: Dict[str, Dict[str, Any]] = {}
+        self.trend_images[trend_category] = image_data
 
-# Singleton-Instanz
+    def get_trend_image(self, trend_category: str) -> Optional[Dict[str, Any]]:
+        """Returns cached image for a trend category"""
+        if not hasattr(self, 'trend_images'):
+            return None
+        return getattr(self, 'trend_images', {}).get(trend_category)
+
+    def get_all_trend_images(self) -> Dict[str, Dict[str, Any]]:
+        """Returns all cached trend images"""
+        if not hasattr(self, 'trend_images'):
+            self.trend_images = {}
+        return self.trend_images
+
+
+# Singleton instance
 image_service = ImageGenerationService()

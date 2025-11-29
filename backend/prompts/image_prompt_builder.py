@@ -11,6 +11,69 @@ class ImagePromptBuilder:
     def __init__(self):
         self.prompt_cache: Dict[int, Dict[str, Any]] = {}
 
+    def build_prompt_for_trend(
+        self,
+        product_description: str,
+        trend_category: str,
+        trend_interests: List[str],
+        additional_context: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Builds a structured prompt for a specific trend category
+
+        Args:
+            product_description: Description of the product being advertised
+            trend_category: The trend category (e.g., "Technology", "Sports")
+            trend_interests: List of interests in this trend category
+            additional_context: Optional additional context
+
+        Returns:
+            Structured prompt dictionary following Black Forest guidelines
+        """
+        mood = self._determine_mood_for_category(trend_category)
+        color_palette = self._generate_color_palette_for_category(
+            trend_category)
+        background = self._generate_background_for_category(
+            trend_category, trend_interests)
+
+        structured_prompt = {
+            "scene": f"Professional advertising photography with {product_description} as hero product",
+            "subjects": [
+                {
+                    "description": product_description,
+                    "pose": "Prominently displayed with appealing presentation",
+                    "position": "Center foreground on clean surface",
+                    "color_palette": color_palette[:2]
+                }
+            ],
+            "context": {
+                "trend_category": trend_category,
+                "trend_interests": trend_interests,
+                "lifestyle_theme": f"Integrated with {trend_category.lower()} lifestyle"
+            },
+            "style": "Ultra-realistic advertising photography with commercial quality",
+            "color_palette": color_palette,
+            "lighting": "Three-point softbox setup creating soft, diffused highlights with no harsh shadows",
+            "mood": mood,
+            "background": background,
+            "composition": "Rule of thirds with clear focus on product",
+            "camera": {
+                "angle": "Slightly elevated angle for premium feel",
+                "distance": "Medium shot emphasizing product",
+                "focus": "Sharp focus on main product with subtle depth of field",
+                "lens-mm": 85,
+                "f-number": "f/4.0",
+                "ISO": 200
+            }
+        }
+
+        if additional_context:
+            structured_prompt["additional_details"] = additional_context
+
+        logger.info(
+            f"Built structured prompt for trend category: {trend_category}")
+        return structured_prompt
+
     def build_structured_prompt(
         self,
         product_description: str,
@@ -170,6 +233,39 @@ class ImagePromptBuilder:
             return "Sophisticated travel-inspired setting with subtle adventure elements"
         else:
             return "Professional lifestyle setting with clean, aspirational atmosphere"
+
+    def _determine_mood_for_category(self, category: str) -> str:
+        """Determines mood based on trend category"""
+        mood_map = {
+            "Technology": "Sleek, modern, innovative, tech-forward",
+            "Sports": "Energetic, dynamic, active, motivating",
+            "Food": "Warm, inviting, appetizing, gourmet",
+            "Travel": "Adventurous, exciting, wanderlust, aspirational",
+            "Entertainment": "Vibrant, engaging, culturally rich, entertaining"
+        }
+        return mood_map.get(category, "Clean, professional, lifestyle-oriented, aspirational")
+
+    def _generate_color_palette_for_category(self, category: str) -> List[str]:
+        """Generates color palette based on trend category"""
+        palette_map = {
+            "Technology": ["sleek black", "metallic silver", "electric blue", "pure white"],
+            "Sports": ["vibrant red", "energetic orange", "fresh green", "deep blue"],
+            "Food": ["warm brown", "rich red", "fresh green", "golden yellow"],
+            "Travel": ["sky blue", "sunset orange", "earth brown", "ocean teal"],
+            "Entertainment": ["vibrant purple", "bold red", "golden yellow", "deep blue"]
+        }
+        return palette_map.get(category, ["sophisticated navy", "warm beige", "soft white", "accent gold"])
+
+    def _generate_background_for_category(self, category: str, interests: List[str]) -> str:
+        """Generates background description for trend category"""
+        background_map = {
+            "Technology": "Modern minimalist space with subtle tech elements, clean lines, futuristic ambiance",
+            "Sports": "Active lifestyle setting with subtle athletic elements, energetic atmosphere",
+            "Food": "Elegant dining atmosphere with subtle gourmet elements, warm ambiance",
+            "Travel": "Sophisticated travel-inspired setting with subtle adventure elements",
+            "Entertainment": "Vibrant cultural setting with entertainment-themed accents"
+        }
+        return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
 
     def _generate_lifestyle_context(
         self,
