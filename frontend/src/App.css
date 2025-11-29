@@ -1,23 +1,20 @@
-.App {
-  text-align: center;
+.app {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #282c34;
 }
 
-.App-header {
-  color: white;
+.app-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.App-header h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.App-header p {
-  font-size: 1.5rem;
-  color: #61dafb;
+@media (max-width: 768px) {
+  .app-content {
+    padding: 1rem;
+  }
 }
