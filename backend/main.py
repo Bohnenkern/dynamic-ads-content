@@ -1,14 +1,19 @@
-from routers import trends, users
-from services.user_data import user_service
+from dotenv import load_dotenv
+load_dotenv()
+
 from services.trend_analysis import trend_service
+from services.user_data import user_service
+from routers import trends, users
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+
+# CRITICAL: Load .env FIRST before ANY other imports
+# Services create singleton instances on import and need API keys immediately
+
+# Now safe to import everything else
 
 
 # Logging konfigurieren

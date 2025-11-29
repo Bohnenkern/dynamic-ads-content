@@ -77,7 +77,30 @@ class ImageGenerationService:
                     timeout=60.0
                 )
                 result = response.json()
-                image_url = result.get("result", {}).get("sample")
+                logger.info(
+                    f"Black Forest Response for user {user_id}: {result}")
+
+                # Parse response
+                if "result" in result and result["result"]:
+                    image_url = result["result"].get("sample")
+                elif "id" in result:
+                    task_id = result["id"]
+                    logger.info(f"Polling task {task_id}...")
+                    import asyncio
+                    for _ in range(30):
+                        await asyncio.sleep(1)
+                        status_resp = await client.get(
+                            f"https://api.bfl.ml/v1/get_result?id={task_id}",
+                            headers={"X-Key": self.black_forest_api_key}
+                        )
+                        status = status_resp.json()
+                        if status.get("status") == "Ready":
+                            image_url = status.get("result", {}).get("sample")
+                            break
+                    else:
+                        image_url = None
+                else:
+                    image_url = None
 
             result = {
                 "user_id": user_id,
@@ -197,7 +220,30 @@ class ImageGenerationService:
                     timeout=60.0
                 )
                 result = response.json()
-                image_url = result.get("result", {}).get("sample")
+                logger.info(
+                    f"Black Forest Response for {trend_category}: {result}")
+
+                # Parse response correctly
+                if "result" in result and result["result"]:
+                    image_url = result["result"].get("sample")
+                elif "id" in result:
+                    task_id = result["id"]
+                    logger.info(f"Polling task {task_id}...")
+                    import asyncio
+                    for _ in range(30):
+                        await asyncio.sleep(1)
+                        status_resp = await client.get(
+                            f"https://api.bfl.ml/v1/get_result?id={task_id}",
+                            headers={"X-Key": self.black_forest_api_key}
+                        )
+                        status = status_resp.json()
+                        if status.get("status") == "Ready":
+                            image_url = status.get("result", {}).get("sample")
+                            break
+                    else:
+                        image_url = None
+                else:
+                    image_url = None
 
             result_data = {
                 "trend_category": trend_category,
@@ -209,7 +255,7 @@ class ImageGenerationService:
             }
 
             logger.info(
-                f"Image generated successfully for trend: {trend_category}")
+                f"Image URL for {trend_category}: {image_url}")
             return result_data
 
         except Exception as e:
