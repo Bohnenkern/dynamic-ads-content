@@ -9,16 +9,26 @@ if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
 from TrendWebScraping.GoogleTrendsScraper import GoogleTrendsScraper
-from TrendWebScraping.TwitterTrendsScraper import TwitterTrendsScraper
+#from TrendWebScraping.TwitterTrendsScraper import TwitterTrendsScraper
 from filter_trends import filter_data_with_openai
 
 
 
 def main():
     # ---------------- Google Trends ----------------
-    google_scraper = GoogleTrendsScraper(country="DE")
-    trends = google_scraper.scrape_trends()
-    google_scraper.print_trends()
+
+    scraper = GoogleTrendsScraper(json_file="google_trends.json")
+    
+    # Länderliste definieren
+    countries = ["DE", "US", "FR", "GB", "IT", "ES", "JP", "BR", "CA", "AU"]
+    
+    print("🌍 Google Trends Multi-Country Scraper")
+    print("=" * 50)
+    
+    # 1. Für alle Länder scrapen
+    trends = scraper.scrape_multiple_countries(countries)
+    
+    scraper.print_trends()
     
 
     # Optional GPT Filter — call the reusable function in backend/filter_trends

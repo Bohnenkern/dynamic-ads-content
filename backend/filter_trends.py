@@ -88,6 +88,15 @@ def filter_data_with_openai(
     """
     prompt = build_prompt(data, instruction=instruction, pretty=True, wrap=True)
 
+    # Save the prompt to a file before calling the API for debugging/inspection
+    prompt_path = os.path.join(os.path.dirname(__file__), 'prompt.txt')
+    try:
+        with open(prompt_path, 'w', encoding='utf-8') as pf:
+            pf.write(prompt)
+    except Exception:
+        # Non-fatal — don't crash if we cannot write the file, but notify
+        print('Warning: could not write prompt to', prompt_path)
+
     # Load env .env and fallback to environment variable
     load_dotenv()
     if not api_key:
