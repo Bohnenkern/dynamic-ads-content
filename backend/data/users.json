@@ -3,6 +3,7 @@
     "id": 1,
     "name": "Anna Schmidt",
     "age": 28,
+    "language": "de",
     "location": "Berlin",
     "interests": [
       "AI",
@@ -27,6 +28,7 @@
     "id": 2,
     "name": "Max Müller",
     "age": 35,
+    "language": "de",
     "location": "Munich",
     "interests": [
       "Football",
@@ -51,6 +53,7 @@
     "id": 3,
     "name": "Sarah Weber",
     "age": 24,
+    "language": "en",
     "location": "Hamburg",
     "interests": [
       "Beach Holidays",
@@ -75,6 +78,7 @@
     "id": 4,
     "name": "Tom Fischer",
     "age": 42,
+    "language": "fr",
     "location": "Frankfurt",
     "interests": [
       "Concerts",
@@ -99,6 +103,7 @@
     "id": 5,
     "name": "Lisa Wagner",
     "age": 31,
+    "language": "es",
     "location": "Cologne",
     "interests": [
       "Gaming",
