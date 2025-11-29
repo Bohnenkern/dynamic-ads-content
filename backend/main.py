@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 import logging
 
 from services.trend_analysis import trend_service
-from routers import trends
+from services.user_data import user_service
+from routers import trends, users
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -17,8 +18,14 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle-Handler für Startup und Shutdown"""
-    # Startup: Trendanalyse beim Start initialisieren
+    # Startup
     logger.info("Starte Dynamic Ads Content API...")
+    
+    # Lade User-Daten
+    logger.info("Lade User-Daten...")
+    user_service.load_users()
+    
+    # Initialisiere Trendanalyse
     logger.info("Initialisiere Trendanalyse...")
     await trend_service.fetch_user_interests()
     logger.info("Trendanalyse erfolgreich initialisiert")
@@ -45,6 +52,7 @@ app.add_middleware(
 
 # Router einbinden
 app.include_router(trends.router, prefix="/api/v1", tags=["trends"])
+app.include_router(users.router, prefix="/api/v1", tags=["users"])
 
 
 @app.get("/")

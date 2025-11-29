@@ -1,5 +1,6 @@
 *.env
+*.env.example
 venv/
-*.json
 node_modules/
+!backend/data/*.json
 *.pyc

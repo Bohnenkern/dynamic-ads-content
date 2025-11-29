@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "Anna Schmidt",
+    "age": 28,
+    "location": "Berlin",
+    "interests": [
+      "AI",
+      "Running",
+      "Healthy Eating",
+      "Music",
+      "Photography"
+    ],
+    "hobbies": [
+      "Marathon Training",
+      "Cooking",
+      "Concert Visits",
+      "Tech Blogging"
+    ],
+    "demographics": {
+      "gender": "female",
+      "occupation": "Software Developer",
+      "income_level": "high"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Max Müller",
+    "age": 35,
+    "location": "Munich",
+    "interests": [
+      "Football",
+      "Gaming",
+      "Fine Dining",
+      "City Trips",
+      "Smartphones"
+    ],
+    "hobbies": [
+      "Playing Football",
+      "Video Gaming",
+      "Restaurant Reviews",
+      "Travel Blogging"
+    ],
+    "demographics": {
+      "gender": "male",
+      "occupation": "Marketing Manager",
+      "income_level": "high"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Sarah Weber",
+    "age": 24,
+    "location": "Hamburg",
+    "interests": [
+      "Beach Holidays",
+      "Movies",
+      "Basketball",
+      "Cooking",
+      "Adventure"
+    ],
+    "hobbies": [
+      "Beach Volleyball",
+      "Movie Nights",
+      "Travel Planning",
+      "Recipe Experimentation"
+    ],
+    "demographics": {
+      "gender": "female",
+      "occupation": "Graphic Designer",
+      "income_level": "medium"
+    }
+  },
+  {
+    "id": 4,
+    "name": "Tom Fischer",
+    "age": 42,
+    "location": "Frankfurt",
+    "interests": [
+      "Concerts",
+      "Fine Dining",
+      "AI",
+      "Running",
+      "City Trips"
+    ],
+    "hobbies": [
+      "Playing Guitar",
+      "Wine Tasting",
+      "Fitness Training",
+      "Business Travel"
+    ],
+    "demographics": {
+      "gender": "male",
+      "occupation": "Business Consultant",
+      "income_level": "high"
+    }
+  },
+  {
+    "id": 5,
+    "name": "Lisa Wagner",
+    "age": 31,
+    "location": "Cologne",
+    "interests": [
+      "Gaming",
+      "Smartphones",
+      "Movies",
+      "Healthy Eating",
+      "Beach Holidays"
+    ],
+    "hobbies": [
+      "Mobile Gaming",
+      "Tech Reviews",
+      "Streaming",
+      "Meal Prep"
+    ],
+    "demographics": {
+      "gender": "female",
+      "occupation": "Product Manager",
+      "income_level": "high"
+    }
+  }
+]
