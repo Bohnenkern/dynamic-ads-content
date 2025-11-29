@@ -1,37 +1,61 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
-import api from './services/api'
+import TabNavigation from './components/TabNavigation'
+import CampaignTab from './components/tabs/CampaignTab'
+import UserTab from './components/tabs/UserTab'
 
 function App() {
-  const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('campaign')
+  const [uploadedImage, setUploadedImage] = useState(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  const handleImageUpload = (file) => {
+    setUploadedImage(file)
+  }
 
-  const fetchData = async () => {
-    try {
-      const response = await api.get('/')
-      setMessage(response.data.message)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      setMessage('Error connecting to API')
-    } finally {
-      setLoading(false)
+  const handleRunCampaign = () => {
+    if (uploadedImage) {
+      console.log('Running campaign with image:', uploadedImage.name)
+      // Hier später API-Call zum Backend
+    }
+  }
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'campaign':
+        return (
+          <CampaignTab 
+            uploadedImage={uploadedImage}
+            onImageUpload={handleImageUpload}
+            onRunCampaign={handleRunCampaign}
+          />
+        )
+      case 'user1':
+        return <UserTab userName="User 1" />
+      case 'user2':
+        return <UserTab userName="User 2" />
+      case 'user3':
+        return <UserTab userName="User 3" />
+      case 'user4':
+        return <UserTab userName="User 4" />
+      case 'user5':
+        return <UserTab userName="User 5" />
+      default:
+        return (
+          <CampaignTab 
+            uploadedImage={uploadedImage}
+            onImageUpload={handleImageUpload}
+            onRunCampaign={handleRunCampaign}
+          />
+        )
     }
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Dynamic Ads Content</h1>
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <p>{message}</p>
-        )}
-      </header>
+    <div className="app">
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <main className="app-content">
+        {renderTabContent()}
+      </main>
     </div>
   )
 }
