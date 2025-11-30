@@ -15,6 +15,7 @@ function App() {
   const [users, setUsers] = useState([])
   const [productDescription, setProductDescription] = useState('')
   const [campaignTheme, setCampaignTheme] = useState('')
+  const [stylePreset, setStylePreset] = useState('highly_stylized')
 
   // Load users on mount
   useEffect(() => {
@@ -48,6 +49,7 @@ function App() {
         image: uploadedImage,
         product_description: productDescription,
         campaign_theme: campaignTheme,
+        style_preset: stylePreset,
       }
 
       console.log('Starting campaign generation...', campaignData)
@@ -82,6 +84,8 @@ function App() {
             setProductDescription={setProductDescription}
             campaignTheme={campaignTheme}
             setCampaignTheme={setCampaignTheme}
+            stylePreset={stylePreset}
+            setStylePreset={setStylePreset}
             campaignResult={campaignResult}
             isLoading={isLoading}
             error={error}
@@ -139,6 +143,8 @@ function App() {
             setProductDescription={setProductDescription}
             campaignTheme={campaignTheme}
             setCampaignTheme={setCampaignTheme}
+            stylePreset={stylePreset}
+            setStylePreset={setStylePreset}
             campaignResult={campaignResult}
             isLoading={isLoading}
             error={error}

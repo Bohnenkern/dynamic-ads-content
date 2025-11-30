@@ -194,7 +194,8 @@ async def get_all_prompts():
 async def generate_campaign(
     product_image: UploadFile = File(...),
     product_description: str = Form(...),
-    campaign_theme: str = Form(default="general marketing campaign")
+    campaign_theme: str = Form(default="general marketing campaign"),
+    style_preset: str = Form(default="highly_stylized")
 ):
     """
     Complete workflow for personalized ad campaign generation:
@@ -210,13 +211,15 @@ async def generate_campaign(
         product_image: Product image file from frontend
         product_description: Description of the product to advertise
         campaign_theme: Theme of the marketing campaign
+        style_preset: Visual style preset (realistic, semi_realistic, highly_stylized)
     """
 
     logger.info("=" * 70)
-    logger.info("CAMPAIGN GENERATION STARTED")
+    logger.info("CAMPAIGN GENERATION STARTED (OPTIMIZED PIPELINE)")
     logger.info("=" * 70)
     logger.info(f"Product: {product_description}")
     logger.info(f"Theme: {campaign_theme}")
+    logger.info(f"Style: {style_preset}")
     logger.info(
         f"Image: {product_image.filename} ({product_image.content_type})")
     logger.info("=" * 70)
@@ -386,7 +389,8 @@ async def generate_campaign(
                 matched_interests=random_user_match.get(
                     "matched_interests", []),
                 base_structured_prompt=user_structured_prompt,
-                image_analysis=image_analysis
+                image_analysis=image_analysis,
+                style_preset=style_preset
             )
 
     # STEP 6: Build prompts for EACH USER'S SPECIFIC INTERESTS (one image per interest)
@@ -443,7 +447,8 @@ async def generate_campaign(
             user_data=user_data_for_opt,
             matched_interests=[
                 {"interest": data["interest"], "category": data["interest"]}],
-            base_structured_prompt=data["structured_prompt"]
+            base_structured_prompt=data["structured_prompt"],
+            style_preset=style_preset
         )
         optimization_tasks.append(task)
 

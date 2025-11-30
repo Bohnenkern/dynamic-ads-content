@@ -81,7 +81,8 @@ Describe the image following these strict guidelines:
         user_data: Dict[str, Any],
         matched_interests: List[Dict[str, Any]],
         base_structured_prompt: Dict[str, Any],
-        image_analysis: Optional[str] = None
+        image_analysis: Optional[str] = None,
+        style_preset: str = "highly_stylized"
     ) -> str:
         """
         Uses OpenAI to refine and optimize the image generation prompt
@@ -93,6 +94,7 @@ Describe the image following these strict guidelines:
             matched_interests: List of matched trending interests
             base_structured_prompt: Structured prompt from image_prompt_builder
             image_analysis: Optional analysis of the input image
+            style_preset: Visual style preset (realistic, semi_realistic, highly_stylized)
 
         Returns:
             Optimized text prompt for FLUX.2 image generation
@@ -110,7 +112,59 @@ Describe the image following these strict guidelines:
             top_interests = [m['interest']
                              for m in matched_interests[:3]] if matched_interests else []
 
-            system_message = """You are an expert in crafting DYNAMIC, ACTION-PACKED prompts for FLUX.2 image generation by Black Forest Labs.
+            # Select System Prompt based on Style Preset
+            if style_preset == "realistic":
+                system_message = """You are an expert in creating PHOTOREALISTIC, AUTHENTIC advertising scenarios for FLUX.2 image generation.
+Your task is to create NATURAL, BELIEVABLE scenes that look like high-end product photography.
+
+📸 CRITICAL RULES for REALISTIC SCENARIOS:
+1. The product image is PROVIDED as reference - show it in a REAL-WORLD context.
+2. Focus on PHOTOREALISM: Natural lighting, authentic textures, realistic depth of field.
+3. Avoid exaggerated effects, neon lights, or fantasy elements unless specifically requested by the niche.
+4. Match the user's niche with a PLAUSIBLE, EVERYDAY scenario.
+5. Use photography terms: "soft daylight", "bokeh", "macro shot", "golden hour", "natural shadows".
+6. Product should look integrated into the scene naturally, not pasted on.
+7. Format: Realistic Setting → Natural Action → Authentic Details → Photography Lighting
+8. IMPORTANT: Match the EXACT specific interest, not the generic category.
+
+⚠️ LEGAL COMPLIANCE:
+9. NEVER use specific brand names or real person names. Generalize to "luxury car", "professional athlete", etc.
+10. Use SPECIFIC LOCATIONS but keep them generic enough to be legally safe (e.g., "modern office", "sunny beach").
+
+🎯 SCENARIO EXAMPLES:
+- "Trail Running" → "A runner pausing on a rocky trail in the Alps, tying their shoe, soft morning mist, dew on grass, hyper-realistic texture."
+- "Coffee" → "A steaming cup on a rustic wooden table, morning sunlight streaming through a window, dust motes dancing in light, cozy atmosphere."
+- "Office Work" → "A modern desk setup with natural light, blurred office background, focus on the product, clean and professional look."
+
+The reference image contains the product. Show it in a REALISTIC, HIGH-QUALITY PHOTOGRAPHIC scenario."""
+
+            elif style_preset == "semi_realistic":
+                system_message = """You are an expert in creating POLISHED, SEMI-REALISTIC advertising scenarios for FLUX.2 image generation.
+Your task is to create scenes that are grounded in reality but ENHANCED with artistic lighting and composition.
+
+🎨 CRITICAL RULES for SEMI-REALISTIC SCENARIOS:
+1. The product image is PROVIDED as reference - show it in an ENHANCED real-world context.
+2. Balance REALISM with STYLE: Use realistic textures but perfect, studio-like lighting.
+3. Colors should be slightly more vibrant, lighting more dramatic than real life.
+4. Create a "Commercial Look" - better than reality, but still believable.
+5. Use terms like: "cinematic lighting", "color graded", "studio atmosphere", "sharp focus", "vibrant colors".
+6. Product should be the clear focal point, slightly highlighted.
+7. Format: Polished Setting → Stylized Action → Enhanced Details → Studio Lighting
+8. IMPORTANT: Match the EXACT specific interest.
+
+⚠️ LEGAL COMPLIANCE:
+9. NEVER use specific brand names or real person names.
+10. Use SPECIFIC LOCATIONS but stylized.
+
+🎯 SCENARIO EXAMPLES:
+- "Fitness" → "A gym scene with dramatic rim lighting highlighting the athlete, sweat glistening, background slightly darkened for focus."
+- "Tech" → "A sleek modern desk with cool blue ambient lighting, product glowing slightly, high-tech atmosphere but realistic props."
+- "Travel" → "A perfect sunset beach scene, colors enhanced for warmth, product placed perfectly on a rock, dream-like quality."
+
+The reference image contains the product. Show it in a POLISHED, COMMERCIAL, SEMI-REALISTIC scenario."""
+
+            else:  # highly_stylized (Default)
+                system_message = """You are an expert in crafting DYNAMIC, ACTION-PACKED prompts for FLUX.2 image generation by Black Forest Labs.
 Your task is to create VIVID, DRAMATIC advertising scenarios that put the product IN MOTION and IN UNEXPECTED SITUATIONS.
 
 🎬 CRITICAL RULES for DYNAMIC PRODUCT SCENARIOS:
@@ -140,7 +194,7 @@ Your task is to create VIVID, DRAMATIC advertising scenarios that put the produc
 
 The reference image contains the product. Show it in a SPECIFIC, DRAMATIC, ACTION-PACKED scenario that matches the user's EXACT niche interest."""
 
-            user_message = f"""Create a DYNAMIC, ACTION-PACKED advertising scenario for FLUX.2:
+            user_message = f"""Create a {'PHOTOREALISTIC' if style_preset == 'realistic' else 'POLISHED' if style_preset == 'semi_realistic' else 'DYNAMIC, ACTION-PACKED'} advertising scenario for FLUX.2:
 
 🎯 CONTEXT:
 - Product: {product_description}
@@ -148,43 +202,28 @@ The reference image contains the product. Show it in a SPECIFIC, DRAMATIC, ACTIO
 - TARGET LANGUAGE: {user_language}
 - SPECIFIC Interest Niche: {top_interests[0] if top_interests else 'lifestyle'}
 - Note: Product image is provided as reference
+- STYLE: {style_preset.upper().replace('_', ' ')}
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
-🎬 Create a DRAMATIC, SPECIFIC scenario that:
+🎬 Create a SCENARIO that:
 
-1. Shows the product IN MOTION or IN ACTION (not static!)
-2. Matches the EXACT SPECIFIC interest niche (e.g., "Beach Volleyball" → Rio beach volleyball court, "Machine Learning" → high-tech AI research lab)
-3. Creates a CONCRETE, DETAILED scenario with specific location/situation
-4. Uses DYNAMIC, CINEMATIC language: "racing", "flying", "splashing", "cutting through"
-5. Includes UNEXPECTED, CREATIVE scenarios (car in kitchen? smartphone surfing? BE BOLD!)
-6. Describes dramatic lighting, motion blur, action details
-7. Automatically decide how the product should be ACTIVELY USED in the scene to make it look exciting and cool for this specific user niche
-8. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
-9. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
-10. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
-11. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
+1. Shows the product in a context matching the style: {'Natural and authentic' if style_preset == 'realistic' else 'Enhanced and commercial' if style_preset == 'semi_realistic' else 'Dynamic and unexpected'}
+2. Matches the EXACT SPECIFIC interest niche
+3. Creates a CONCRETE, DETAILED scenario
+4. Uses language appropriate for the style: {'Photography terms' if style_preset == 'realistic' else 'Commercial/Cinematic terms' if style_preset == 'semi_realistic' else 'Action verbs'}
+5. Automatically decide how the product should be staged
+6. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+7. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
+8. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
+9. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
 ⚠️ LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
-12. If Interest contains BRAND NAMES → Use specific scenario instead ("Nike" → "Olympic athletics track", "iPhone" → "Silicon Valley tech office")
-13. If Interest contains PERSON NAMES → Use their venue/context ("Cristiano Ronaldo" → "Champions League football stadium", "Taylor Swift" → "sold-out arena concert stage")
-14. If Interest contains COPYRIGHTED CONTENT → Use setting ("Mario" → "retro 8-bit arcade game room", "Star Wars" → "futuristic space station cockpit")
-15. ALWAYS use SPECIFIC, VIVID locations and scenarios to avoid trademark violations
-16. Examples: "Formula 1 racing circuit" (not Ferrari), "Tokyo gaming arcade" (not PlayStation), "streaming service watch party" (not Netflix)
-
-🎯 SCENARIO EXAMPLES by Interest:
-- "Trail Running" → "Sprinting down a rugged alpine trail in Swiss mountains, mud splashing, pine trees blurring past, sunrise golden light"
-- "Beach Volleyball" → "Diving for a spike on Copacabana beach court, sand flying, Rio sunset backdrop, dynamic mid-air action"
-- "Machine Learning" → "Racing through a neon-lit AI research lab, holographic code projections, futuristic server racks, electric blue lighting"
-- "Fine Dining" → "Flying through a Michelin-star restaurant kitchen mid-service, flames from stove, chefs in motion, dramatic spotlighting"
-
-REMEMBER:
-- Product must be IN ACTION, not static
-- Match the EXACT specific interest, not generic category
-- Be CREATIVE and DRAMATIC - unexpected scenarios are encouraged!
-- Use SPECIFIC locations and vivid details
-- GENERALIZE any brands/persons but keep scenarios SPECIFIC and EXCITING
+10. If Interest contains BRAND NAMES → Use specific scenario instead
+11. If Interest contains PERSON NAMES → Use their venue/context
+12. If Interest contains COPYRIGHTED CONTENT → Use setting
+13. ALWAYS use SPECIFIC locations and scenarios to avoid trademark violations
 
 OUTPUT: Only the final optimized prompt text (100-150 words), no explanations or markdown."""
 
@@ -195,7 +234,7 @@ OUTPUT: Only the final optimized prompt text (100-150 words), no explanations or
                     {"role": "user", "content": user_message}
                 ],
                 max_tokens=300,  # Increased for detailed action scenarios
-                temperature=0.9  # Higher for maximum creativity and drama
+                temperature=0.7 if style_preset == "realistic" else 0.9  # Lower temp for realism
             )
 
             optimized_prompt = response.choices[0].message.content.strip()

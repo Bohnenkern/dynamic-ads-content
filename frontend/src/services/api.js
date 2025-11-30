@@ -33,6 +33,7 @@ export const generateCampaign = async (campaignData) => {
   formData.append('product_image', campaignData.image)
   formData.append('product_description', campaignData.product_description)
   formData.append('campaign_theme', campaignData.campaign_theme)
+  formData.append('style_preset', campaignData.style_preset)
 
   const response = await api.post('/api/v1/campaign/generate', formData, {
     headers: {

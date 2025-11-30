@@ -109,6 +109,107 @@
   color: var(--text-secondary);
 }
 
+/* Style Slider */
+.style-slider-container {
+  padding: 0.5rem 0;
+  position: relative;
+  z-index: 10;
+}
+
+.style-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  outline: none;
+  margin: 1rem 0;
+  cursor: pointer;
+  z-index: 20;
+  position: relative;
+}
+
+/* Track */
+.style-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.style-slider::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* Thumb */
+.style-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  margin-top: -8px; /* (6px track height - 22px thumb height) / 2 */
+  box-shadow: 0 0 15px var(--accent-glow);
+  transition: transform 0.2s ease, background-color 0.2s;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.style-slider::-moz-range-thumb {
+  height: 22px;
+  width: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: 0 0 15px var(--accent-glow);
+  transition: transform 0.2s ease, background-color 0.2s;
+}
+
+.style-slider:focus::-webkit-slider-thumb {
+  background: #fff;
+  transform: scale(1.1);
+}
+
+.style-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+.style-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: -0.5rem;
+  pointer-events: none;
+}
+
+.style-labels span {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.style-labels span.active {
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.label-value {
+  float: right;
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
 .campaign-content {
   margin-top: 3rem;
 }

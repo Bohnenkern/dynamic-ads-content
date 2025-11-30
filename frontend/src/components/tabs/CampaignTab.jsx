@@ -9,11 +9,22 @@ const CampaignTab = ({
   setProductDescription,
   campaignTheme,
   setCampaignTheme,
+  stylePreset,
+  setStylePreset,
   campaignResult,
   isLoading,
   error
 }) => {
   const isFormValid = uploadedImage && productDescription && campaignTheme
+
+  const getStyleLabel = (value) => {
+    switch(value) {
+      case 'realistic': return 'Realistic'
+      case 'semi_realistic': return 'Semi-Realistic'
+      case 'highly_stylized': return 'Highly Stylized'
+      default: return 'Highly Stylized'
+    }
+  }
 
   return (
     <div className="campaign-tab">
@@ -54,6 +65,37 @@ const CampaignTab = ({
             disabled={isLoading}
           />
           <span className="form-hint">Name or theme for your marketing campaign</span>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="stylePreset">
+            <span className="label-text">Visual Style</span>
+            <span className="label-value">{getStyleLabel(stylePreset)}</span>
+          </label>
+          <div className="style-slider-container">
+            <input
+              id="stylePreset"
+              type="range"
+              min="0"
+              max="2"
+              step="1"
+              className="style-slider"
+              value={stylePreset === 'realistic' ? 0 : stylePreset === 'semi_realistic' ? 1 : 2}
+              onChange={(e) => {
+                const val = parseInt(e.target.value)
+                if (val === 0) setStylePreset('realistic')
+                else if (val === 1) setStylePreset('semi_realistic')
+                else setStylePreset('highly_stylized')
+              }}
+              disabled={isLoading}
+            />
+            <div className="style-labels">
+              <span className={stylePreset === 'realistic' ? 'active' : ''}>Realistic</span>
+              <span className={stylePreset === 'semi_realistic' ? 'active' : ''}>Semi</span>
+              <span className={stylePreset === 'highly_stylized' ? 'active' : ''}>Stylized</span>
+            </div>
+          </div>
+          <span className="form-hint">Choose the artistic level of the generated images</span>
         </div>
       </div>
 
