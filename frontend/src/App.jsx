@@ -5,13 +5,6 @@ import CampaignTab from './components/tabs/CampaignTab'
 import UserTab from './components/tabs/UserTab'
 import { generateCampaign, getAllUsers } from './services/api'
 
-// Samsung S20 Campaign Configuration
-const CAMPAIGN_CONFIG = {
-  product_description: 'Samsung Galaxy S20 - Premium Smartphone with 5G, 64MP Camera, 120Hz Display',
-  campaign_theme: 'Samsung S20 Launch Campaign',
-  company_values: ['innovative', 'premium', 'technology-focused', 'modern']
-}
-
 function App() {
   const [activeTab, setActiveTab] = useState('campaign')
   const [uploadedImage, setUploadedImage] = useState(null)
@@ -19,6 +12,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [users, setUsers] = useState([])
+  const [productDescription, setProductDescription] = useState('')
+  const [campaignTheme, setCampaignTheme] = useState('')
 
   // Load users on mount
   useEffect(() => {
@@ -42,7 +37,7 @@ function App() {
   }
 
   const handleRunCampaign = async () => {
-    if (!uploadedImage) return
+    if (!uploadedImage || !productDescription || !campaignTheme) return
 
     setIsLoading(true)
     setError(null)
@@ -50,9 +45,8 @@ function App() {
     try {
       const campaignData = {
         image: uploadedImage,
-        product_description: CAMPAIGN_CONFIG.product_description,
-        campaign_theme: CAMPAIGN_CONFIG.campaign_theme,
-        company_values: CAMPAIGN_CONFIG.company_values
+        product_description: productDescription,
+        campaign_theme: campaignTheme,
       }
 
       console.log('Starting campaign generation...', campaignData)
@@ -83,7 +77,10 @@ function App() {
             uploadedImage={uploadedImage}
             onImageUpload={handleImageUpload}
             onRunCampaign={handleRunCampaign}
-            campaignConfig={CAMPAIGN_CONFIG}
+            productDescription={productDescription}
+            setProductDescription={setProductDescription}
+            campaignTheme={campaignTheme}
+            setCampaignTheme={setCampaignTheme}
             campaignResult={campaignResult}
             isLoading={isLoading}
             error={error}
@@ -135,7 +132,10 @@ function App() {
             uploadedImage={uploadedImage}
             onImageUpload={handleImageUpload}
             onRunCampaign={handleRunCampaign}
-            campaignConfig={CAMPAIGN_CONFIG}
+            productDescription={productDescription}
+            setProductDescription={setProductDescription}
+            campaignTheme={campaignTheme}
+            setCampaignTheme={setCampaignTheme}
             campaignResult={campaignResult}
             isLoading={isLoading}
             error={error}

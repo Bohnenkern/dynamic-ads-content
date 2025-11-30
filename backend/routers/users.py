@@ -27,7 +27,6 @@ class CampaignRequest(BaseModel):
     """Request model for campaign generation (deprecated - use FormData)"""
     product_description: str
     campaign_theme: Optional[str] = "general marketing campaign"
-    company_values: Optional[List[str]] = None
 
 
 async def save_uploaded_image(upload_file: UploadFile) -> str:
@@ -189,8 +188,7 @@ async def get_all_prompts():
 async def generate_campaign(
     product_image: UploadFile = File(...),
     product_description: str = Form(...),
-    campaign_theme: str = Form(default="general marketing campaign"),
-    company_values: str = Form(default=None)
+    campaign_theme: str = Form(default="general marketing campaign")
 ):
     """
     Complete workflow for personalized ad campaign generation:
@@ -206,31 +204,51 @@ async def generate_campaign(
         product_image: Product image file from frontend
         product_description: Description of the product to advertise
         campaign_theme: Theme of the marketing campaign
-        company_values: JSON string of company values
     """
-
-    # Parse company_values from JSON string
-    try:
-        values_list = json.loads(company_values) if company_values else [
-            "innovative", "premium"]
-    except json.JSONDecodeError:
-        logger.warning(f"Failed to parse company_values: {company_values}")
-        values_list = ["innovative", "premium"]
 
     logger.info("=" * 70)
     logger.info("🚀 CAMPAIGN GENERATION STARTED")
     logger.info("=" * 70)
     logger.info(f"📱 Product: {product_description}")
     logger.info(f"🎯 Theme: {campaign_theme}")
-    logger.info(f"✨ Values: {values_list}")
     logger.info(
         f"🖼️  Image: {product_image.filename} ({product_image.content_type})")
     logger.info("=" * 70)
 
-    # STEP 1: Save uploaded product image
+    # STEP 1: Save uploaded product image and convert to base64 for Black Forest API
     try:
+        import base64
+        from PIL import Image
+        import io
+
         image_path = await save_uploaded_image(product_image)
         logger.info(f"✅ Step 1 Complete: Image saved to {image_path}")
+
+        # Convert image to JPEG format (Black Forest API requirement)
+        # Open image and convert to RGB (removes alpha channel if present)
+        img = Image.open(image_path)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            # Convert to RGB to avoid transparency issues
+            rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            rgb_img.paste(img, mask=img.split()
+                          [-1] if img.mode in ('RGBA', 'LA') else None)
+            img = rgb_img
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # Save as JPEG to bytes
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=95)
+        img_byte_arr.seek(0)
+
+        # Encode to base64
+        image_data = base64.b64encode(img_byte_arr.read()).decode('utf-8')
+        image_base64_uri = f"data:image/jpeg;base64,{image_data}"
+
+        logger.info(
+            f"✅ Step 1b: Image converted to JPEG and base64 ({len(image_data)} chars)")
     except Exception as e:
         logger.error(f"❌ Step 1 Failed: {str(e)}")
         raise
@@ -257,7 +275,6 @@ async def generate_campaign(
     filtered_trends = await trend_filter_service.filter_trends_for_campaign(
         trends=trends,
         campaign_theme=campaign_theme,
-        company_values=values_list
     )
 
     if not filtered_trends:
@@ -399,13 +416,19 @@ async def generate_campaign(
 
     logger.info(
         f"🎨 Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
+    logger.info(
+        f"   📸 Using FLUX.2 Image Editing with product image as input_image")
     if len(trend_prompts) > MAX_IMAGES_PER_CAMPAIGN:
         logger.warning(
             f"   ⚠️  Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
 
+    # Pass the product image to Black Forest FLUX.2 API (image editing mode)
     trend_images = await image_service.generate_images_for_trends(
         trend_prompts=limited_trend_prompts,
-        product_name=product_description.split()[0]
+        product_name=product_description.split()[0],
+        reference_image_url=image_base64_uri,  # Raw base64 string
+        # Note: FLUX.2 doesn't have strength parameter, control via prompt engineering
+        image_prompt_strength=0.3  # Ignored, kept for API compatibility
     )
 
     # Count actual images generated

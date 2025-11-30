@@ -24,7 +24,6 @@ class TrendFilterService:
         self,
         trends: List[Dict[str, Any]],
         campaign_theme: str = "general marketing campaign",
-        company_values: Optional[List[str]] = None
     ) -> List[Dict[str, Any]]:
         """
         Filters trends to remove unsuitable content for marketing campaigns
@@ -32,7 +31,6 @@ class TrendFilterService:
         Args:
             trends: List of trend dictionaries with category, interests, and popularity
             campaign_theme: The theme of the marketing campaign
-            company_values: Optional list of company values to consider
 
         Returns:
             Filtered list of suitable trends
@@ -41,9 +39,6 @@ class TrendFilterService:
             logger.warning("No OpenAI client - returning unfiltered trends")
             return trends
 
-        if company_values is None:
-            company_values = ["family-friendly",
-                              "positive", "inclusive", "safe"]
 
         try:
             # Prepare trends for analysis
@@ -69,7 +64,6 @@ class TrendFilterService:
 
             user_message = f"""
             Campaign Theme: {campaign_theme}
-            Company Values: {', '.join(company_values)}
             
             Please review these trends and identify which ones are suitable for our marketing campaign:
             

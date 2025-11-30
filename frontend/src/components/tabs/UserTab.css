@@ -20,9 +20,14 @@
 }
 
 .empty-icon {
-  font-size: 4rem;
   margin-bottom: 1.5rem;
   opacity: 0.5;
+}
+
+.empty-icon svg {
+  width: 4rem;
+  height: 4rem;
+  color: #94a3b8;
 }
 
 .empty-state h2 {
@@ -226,9 +231,14 @@
 }
 
 .placeholder-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+}
+
+.placeholder-icon svg {
+  width: 3rem;
+  height: 3rem;
+  color: #94a3b8;
 }
 
 .ad-placeholder h4 {
@@ -335,8 +345,9 @@
     padding: 3rem 2rem;
   }
 
-  .empty-icon {
-    font-size: 3rem;
+  .empty-icon svg {
+    width: 3rem;
+    height: 3rem;
   }
 
   .empty-state h2 {

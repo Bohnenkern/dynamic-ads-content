@@ -55,33 +55,40 @@ class OpenAIService:
                              for m in matched_interests[:3]] if matched_interests else []
 
             system_message = """You are an expert in crafting prompts for FLUX.2 image generation by Black Forest Labs.
-Your task is to optimize advertising image prompts following the structure: Subject + Action + Style + Context.
+Your task is to optimize advertising image prompts for image-to-image generation with product reference.
 
-CRITICAL RULES for FLUX.2:
-1. Word order matters - most important elements FIRST
-2. Keep prompts 50-100 words (concise but descriptive)
-3. Use commercial photography terminology
-4. Integrate trending interests SUBTLY in background/mood/setting
-5. Focus on product as hero, trends enhance atmosphere
-6. Avoid overloading - quality over quantity
+CRITICAL RULES for FLUX.2 with Image Reference:
+1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and BACKGROUND
+2. Describe how to integrate the product into trending lifestyle scenes
+3. Keep prompts 50-100 words (concise but descriptive)
+4. Use professional product photography terminology
+5. Integrate trending interests SUBTLY in background elements and mood
+6. Format: Scene Setup → Background Elements → Lighting → Mood → Composition
+7. Avoid describing the product itself - it's already in the reference image
 
-Format: Subject (product), Action (display), Style (photography type), Context (setting, lighting, mood)"""
+Example structure: "Professional studio product photography with [product] as hero product, [trend-specific background elements] in soft focus, [lighting style], [mood], [composition]"
 
-            user_message = f"""Optimize this advertising image prompt for FLUX.2:
+The reference image contains the product. Your prompt should describe the SCENE around it."""
 
-PRODUCT: {product_description}
-TARGET AUDIENCE: {user_age} year old {user_occupation}
-TRENDING INTERESTS: {', '.join(top_interests)}
+            user_message = f"""Optimize this advertising image prompt for FLUX.2 with product image reference:
+
+CONTEXT:
+- Product: {product_description}
+- Target Audience: {user_age} year old {user_occupation}
+- Trending Interests: {', '.join(top_interests)}
+- Note: Product image is provided as reference
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
 Create an optimized FLUX.2 prompt that:
-1. Showcases the product prominently (hero element)
-2. Subtly integrates trending interests in background/atmosphere
-3. Appeals to target demographic emotionally
-4. Uses professional photography language
-5. Follows Subject → Action → Style → Context structure
+1. Focuses on SCENE COMPOSITION around the product (already in reference image)
+2. Integrates trending interests as subtle BACKGROUND ELEMENTS
+3. Uses professional product photography terminology
+4. Describes lighting, mood, and composition
+5. Keeps the product as hero but describes the lifestyle scene around it
+
+REMEMBER: Don't describe the product itself - describe the SCENE, BACKGROUND, LIGHTING, and MOOD.
 
 OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
 

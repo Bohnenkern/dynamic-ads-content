@@ -82,22 +82,32 @@ class ImageGenerationService:
 
                 # Parse response
                 if "result" in result and result["result"]:
+                    # Immediate result
                     image_url = result["result"].get("sample")
                 elif "id" in result:
+                    # Async generation - need to poll
                     task_id = result["id"]
+                    polling_url = result.get(
+                        "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
                     logger.info(f"Polling task {task_id}...")
                     import asyncio
-                    for _ in range(30):
+                    for attempt in range(60):  # 60 seconds max
                         await asyncio.sleep(1)
                         status_resp = await client.get(
-                            f"https://api.bfl.ml/v1/get_result?id={task_id}",
+                            polling_url,
                             headers={"X-Key": self.black_forest_api_key}
                         )
                         status = status_resp.json()
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
+                            logger.info(
+                                f"Image ready after {attempt + 1} seconds")
+                            break
+                        elif status.get("status") in ["Error", "Failed"]:
+                            logger.error(f"Image generation failed: {status}")
                             break
                     else:
+                        logger.warning(f"Polling timeout after 60 seconds")
                         image_url = None
                 else:
                     image_url = None
@@ -171,10 +181,12 @@ class ImageGenerationService:
         trend_category: str,
         product_name: str = "product",
         width: int = 1024,
-        height: int = 768
+        height: int = 768,
+        reference_image_url: Optional[str] = None,
+        image_prompt_strength: float = 0.3
     ) -> Optional[Dict[str, Any]]:
         """
-        Generates an image for a specific trend category
+        Generates an image for a specific trend category with optional product image reference
 
         Args:
             prompt: Optimized prompt for image generation
@@ -182,6 +194,9 @@ class ImageGenerationService:
             product_name: Name of the product being advertised
             width: Image width
             height: Image height
+            reference_image_url: URL or base64 of reference product image
+            image_prompt_strength: Strength of image reference influence (0.0-1.0)
+                                  Lower = more freedom, Higher = closer to reference
 
         Returns:
             Dictionary with image_url and metadata including trend_category
@@ -201,46 +216,89 @@ class ImageGenerationService:
             logger.info(
                 f"Generating image for trend category: {trend_category}")
             logger.info(f"Prompt preview: {prompt_str[:150]}...")
+            if reference_image_url:
+                # Show only first 50 chars of base64 to avoid log spam
+                img_preview = reference_image_url[:50] + "..." if len(
+                    reference_image_url) > 50 else reference_image_url
+                logger.info(
+                    f"Using reference image ({len(reference_image_url)} chars) with strength: {image_prompt_strength}")
+
+            # Build request payload
+            request_payload = {
+                "prompt": prompt_str,
+                "width": width,
+                "height": height,
+                "safety_tolerance": 2,
+                "output_format": "jpeg"
+            }
+
+            # Add image reference if provided (for image editing endpoint)
+            # FLUX.2 accepts both URLs and raw base64 (without data: prefix)
+            if reference_image_url:
+                # Remove data URI prefix if present, API expects raw base64 or URL
+                if reference_image_url.startswith('data:'):
+                    # Extract raw base64: "data:image/jpeg;base64,ABC123..." -> "ABC123..."
+                    base64_data = reference_image_url.split(
+                        ',', 1)[1] if ',' in reference_image_url else reference_image_url
+                    request_payload["input_image"] = base64_data
+                else:
+                    request_payload["input_image"] = reference_image_url
+                # Note: image_prompt_strength not supported in FLUX.2, use prompt engineering instead
 
             # Real Black Forest Labs API Integration
+            # Use flux-2-pro for image editing (with input_image), flux-pro-1.1 for text-to-image
+            endpoint = "https://api.bfl.ai/v1/flux-2-pro" if reference_image_url else "https://api.bfl.ml/v1/flux-pro-1.1"
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "https://api.bfl.ml/v1/flux-pro-1.1",
+                    endpoint,
                     headers={
                         "X-Key": self.black_forest_api_key,
                         "Content-Type": "application/json"
                     },
-                    json={
-                        "prompt": prompt_str,
-                        "width": width,
-                        "height": height,
-                        "prompt_upsampling": False,
-                        "safety_tolerance": 2
-                    },
+                    json=request_payload,
                     timeout=60.0
                 )
                 result = response.json()
-                logger.info(
-                    f"Black Forest Response for {trend_category}: {result}")
+                # Log only status, not full response with base64 data
+                if response.status_code != 200:
+                    logger.error(
+                        f"Black Forest API Error for {trend_category}: Status {response.status_code}")
+                    if "detail" in result:
+                        logger.error(f"Error details: {result['detail']}")
+                else:
+                    logger.info(
+                        f"Black Forest Response for {trend_category}: Status {response.status_code} - Success")
 
                 # Parse response correctly
                 if "result" in result and result["result"]:
+                    # Immediate result (rare for FLUX.2)
                     image_url = result["result"].get("sample")
                 elif "id" in result:
+                    # Async generation - need to poll
                     task_id = result["id"]
+                    # Use polling_url from response or construct with correct domain
+                    polling_url = result.get(
+                        "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
                     logger.info(f"Polling task {task_id}...")
                     import asyncio
-                    for _ in range(30):
+                    for attempt in range(60):  # 60 seconds max
                         await asyncio.sleep(1)
                         status_resp = await client.get(
-                            f"https://api.bfl.ml/v1/get_result?id={task_id}",
+                            polling_url,
                             headers={"X-Key": self.black_forest_api_key}
                         )
                         status = status_resp.json()
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
+                            logger.info(
+                                f"Image ready after {attempt + 1} seconds")
+                            break
+                        elif status.get("status") in ["Error", "Failed"]:
+                            logger.error(f"Image generation failed: {status}")
                             break
                     else:
+                        logger.warning(
+                            f"Polling timeout after 60 seconds for {trend_category}")
                         image_url = None
                 else:
                     image_url = None
@@ -266,14 +324,18 @@ class ImageGenerationService:
     async def generate_images_for_trends(
         self,
         trend_prompts: Dict[str, str],
-        product_name: str = "product"
+        product_name: str = "product",
+        reference_image_url: Optional[str] = None,
+        image_prompt_strength: float = 0.3
     ) -> Dict[str, Dict[str, Any]]:
         """
-        Generates images for multiple trend categories
+        Generates images for multiple trend categories with optional product image reference
 
         Args:
             trend_prompts: Dictionary with trend_category -> prompt mappings
             product_name: Name of the product being advertised
+            reference_image_url: URL or base64 of reference product image
+            image_prompt_strength: Strength of image reference (0.0-1.0)
 
         Returns:
             Dictionary with trend_category -> result mappings (containing image_url and metadata)
@@ -284,7 +346,9 @@ class ImageGenerationService:
             result = await self.generate_image_for_trend(
                 prompt=prompt,
                 trend_category=trend_category,
-                product_name=product_name
+                product_name=product_name,
+                reference_image_url=reference_image_url,
+                image_prompt_strength=image_prompt_strength
             )
             if result:
                 results[trend_category] = result

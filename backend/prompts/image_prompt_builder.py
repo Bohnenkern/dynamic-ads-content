@@ -19,7 +19,8 @@ class ImagePromptBuilder:
         additional_context: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Builds a structured prompt for a specific trend category
+        Builds a structured prompt for a specific trend category following Black Forest best practices.
+        The product image will be provided as reference, so prompts focus on scene composition.
 
         Args:
             product_description: Description of the product being advertised
@@ -36,31 +37,36 @@ class ImagePromptBuilder:
         background = self._generate_background_for_category(
             trend_category, trend_interests)
 
+        # Build lifestyle elements based on trend interests
+        lifestyle_elements = self._generate_lifestyle_elements_for_trend(
+            trend_category, trend_interests[:3]
+        )
+
         structured_prompt = {
-            "scene": f"Professional advertising photography with {product_description} as hero product",
+            "scene": f"Professional studio product photography setup with polished surface, {lifestyle_elements}",
             "subjects": [
                 {
-                    "description": product_description,
-                    "pose": "Prominently displayed with appealing presentation",
-                    "position": "Center foreground on clean surface",
+                    "description": f"{product_description} as hero product",
+                    "pose": "Stationary on surface",
+                    "position": "Center foreground on polished surface",
                     "color_palette": color_palette[:2]
                 }
             ],
             "context": {
                 "trend_category": trend_category,
-                "trend_interests": trend_interests,
-                "lifestyle_theme": f"Integrated with {trend_category.lower()} lifestyle"
+                "trend_interests": trend_interests[:3],
+                "lifestyle_theme": f"Subtle {trend_category.lower()} lifestyle integration in background"
             },
-            "style": "Ultra-realistic advertising photography with commercial quality",
+            "style": "Ultra-realistic product photography with commercial quality",
             "color_palette": color_palette,
             "lighting": "Three-point softbox setup creating soft, diffused highlights with no harsh shadows",
             "mood": mood,
             "background": background,
-            "composition": "Rule of thirds with clear focus on product",
+            "composition": "rule of thirds with clear focus on product",
             "camera": {
-                "angle": "Slightly elevated angle for premium feel",
-                "distance": "Medium shot emphasizing product",
-                "focus": "Sharp focus on main product with subtle depth of field",
+                "angle": "slightly elevated angle for premium feel",
+                "distance": "medium shot emphasizing product",
+                "focus": "Sharp focus on product details with subtle depth of field on background",
                 "lens-mm": 85,
                 "f-number": "f/4.0",
                 "ISO": 200
@@ -263,9 +269,27 @@ class ImagePromptBuilder:
             "Sports": "Active lifestyle setting with subtle athletic elements, energetic atmosphere",
             "Food": "Elegant dining atmosphere with subtle gourmet elements, warm ambiance",
             "Travel": "Sophisticated travel-inspired setting with subtle adventure elements",
-            "Entertainment": "Vibrant cultural setting with entertainment-themed accents"
+            "Entertainment": "Vibrant cultural setting with entertainment-themed accents",
+            "Gaming": "Modern gaming setup with subtle gaming peripherals in soft focus background",
+            "Music": "Creative studio space with subtle musical instruments as background elements",
+            "Fashion": "Minimalist fashion setting with subtle textile elements, elegant atmosphere"
         }
         return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
+
+    def _generate_lifestyle_elements_for_trend(self, category: str, interests: List[str]) -> str:
+        """Generates subtle lifestyle elements for background based on trend"""
+        elements_map = {
+            "Technology": "subtle laptop and smartphone in soft focus background",
+            "Sports": "subtle sports equipment like dumbbells or yoga mat in background",
+            "Gaming": "subtle gaming controller or headset in soft focus background",
+            "Travel": "subtle map or travel items in background",
+            "Food": "subtle fresh ingredients or cooking utensils in background",
+            "Music": "subtle headphones or vinyl records in background",
+            "Fashion": "subtle fabric swatches or accessories in background",
+            "Health": "subtle wellness items like plants or natural elements",
+            "Outdoor": "subtle natural elements like wood or stones in background"
+        }
+        return elements_map.get(category, "subtle lifestyle props in soft focus background")
 
     def _generate_lifestyle_context(
         self,

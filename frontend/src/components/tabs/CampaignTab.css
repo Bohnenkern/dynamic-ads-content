@@ -20,47 +20,78 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Campaign Info Cards */
-.campaign-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.info-card {
+/* Campaign Form */
+.campaign-form {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  gap: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.info-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
-.info-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
-.info-content h3 {
-  font-size: 0.875rem;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.info-content p {
+.label-required {
+  color: #ef4444;
   font-size: 1rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: white;
   color: #1e293b;
-  line-height: 1.5;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input:disabled,
+.form-textarea:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-style: italic;
 }
 
 .campaign-content {
@@ -120,8 +151,16 @@
 
 .campaign-actions {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   margin-top: 1rem;
+}
+
+.validation-hint {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-align: center;
 }
 
 .run-campaign-button {
