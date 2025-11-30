@@ -89,9 +89,10 @@ class ImageGenerationService:
                     task_id = result["id"]
                     polling_url = result.get(
                         "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
-                    logger.info(f"Polling task {task_id}...")
+                    logger.info(
+                        f"Polling task {task_id} for user {user_id} (max 120s)...")
                     import asyncio
-                    for attempt in range(60):  # 60 seconds max
+                    for attempt in range(120):  # 120 seconds max (increased from 60)
                         await asyncio.sleep(1)
                         status_resp = await client.get(
                             polling_url,
@@ -101,13 +102,19 @@ class ImageGenerationService:
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"Image ready after {attempt + 1} seconds")
+                                f"✅ User {user_id}: Image ready after {attempt + 1} seconds")
                             break
                         elif status.get("status") in ["Error", "Failed"]:
-                            logger.error(f"Image generation failed: {status}")
+                            logger.error(
+                                f"❌ User {user_id}: Generation failed - {status}")
                             break
+                        # Log progress every 20 seconds
+                        elif (attempt + 1) % 20 == 0:
+                            logger.info(
+                                f"⏳ User {user_id}: Still processing... ({attempt + 1}s elapsed)")
                     else:
-                        logger.warning(f"Polling timeout after 60 seconds")
+                        logger.warning(
+                            f"⚠️ User {user_id}: Polling timeout after 120 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None
@@ -279,9 +286,10 @@ class ImageGenerationService:
                     # Use polling_url from response or construct with correct domain
                     polling_url = result.get(
                         "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
-                    logger.info(f"Polling task {task_id}...")
+                    logger.info(
+                        f"Polling task {task_id} for {trend_category} (max 120s)...")
                     import asyncio
-                    for attempt in range(60):  # 60 seconds max
+                    for attempt in range(120):  # 120 seconds max (increased from 60)
                         await asyncio.sleep(1)
                         status_resp = await client.get(
                             polling_url,
@@ -291,14 +299,19 @@ class ImageGenerationService:
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"Image ready after {attempt + 1} seconds")
+                                f"✅ {trend_category}: Image ready after {attempt + 1} seconds")
                             break
                         elif status.get("status") in ["Error", "Failed"]:
-                            logger.error(f"Image generation failed: {status}")
+                            logger.error(
+                                f"❌ {trend_category}: Generation failed - {status}")
                             break
+                        # Log progress every 20 seconds
+                        elif (attempt + 1) % 20 == 0:
+                            logger.info(
+                                f"⏳ {trend_category}: Still processing... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"Polling timeout after 60 seconds for {trend_category}")
+                            f"⚠️ {trend_category}: Polling timeout after 120 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None

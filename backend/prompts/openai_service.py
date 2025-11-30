@@ -32,16 +32,17 @@ class OpenAIService:
 
         try:
             import base64
-            
+
             # Determine mime type
             mime_type = "image/jpeg"
             if image_path.lower().endswith(".png"):
                 mime_type = "image/png"
             elif image_path.lower().endswith(".webp"):
                 mime_type = "image/webp"
-            
+
             with open(image_path, "rb") as image_file:
-                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+                base64_image = base64.b64encode(
+                    image_file.read()).decode('utf-8')
 
             system_message = """You are an expert in analyzing product images for advertising.
 Describe the image following these strict guidelines:
@@ -52,23 +53,24 @@ Describe the image following these strict guidelines:
 5. Color: Use hex codes for brand text if possible, or precise color names: "The logo text 'ACME' in color #FF5733"
 6. Describe the product's key visual characteristics, perspective, and composition.
 """
-            
+
             response = await self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": [
                         {"type": "text", "text": "Analyze this product image for use in an image generation prompt."},
-                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}}
+                        {"type": "image_url", "image_url": {
+                            "url": f"data:{mime_type};base64,{base64_image}"}}
                     ]}
                 ],
                 max_tokens=300
             )
-            
+
             analysis = response.choices[0].message.content.strip()
             logger.info(f"Image Analysis Result: {analysis[:100]}...")
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Error in OpenAI vision analysis: {str(e)}")
             return "Product image"
@@ -122,6 +124,14 @@ CRITICAL RULES for FLUX.2 with Image Reference:
 8. Avoid describing the product itself - it's already in the reference image
 9. IMPORTANT: Create rich, immersive backgrounds that evoke the lifestyle theme without being literal
 
+LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
+10. NEVER use specific brand names, trademarks, or company names (e.g., "Nike" → "athletic brand", "Apple" → "tech device", "Mercedes" → "luxury car")
+11. NEVER use real person names, celebrities, or public figures (e.g., "Cristiano Ronaldo" → "male professional footballer", "Taylor Swift" → "female pop artist")
+12. NEVER reference copyrighted characters, franchises, or IP (e.g., "Mario" → "video game character", "Star Wars" → "sci-fi theme")
+13. Use GENERIC, DESCRIPTIVE terms instead: "premium sportswear", "high-end smartphone", "professional athlete"
+14. For sports: Use role descriptions ("male footballer", "female tennis player") instead of names
+15. For brands: Use category descriptions ("luxury watch brand", "sports car manufacturer") instead of names
+
 Example structure: "Professional studio product photography with [product] as hero product, set in [atmospheric description of environment related to interest theme], [environmental textures and depth], [lighting style creating specific mood], [emotional atmosphere], [composition]"
 
 The reference image contains the product. Your prompt should describe an ATMOSPHERIC SCENE that evokes the lifestyle theme through environment and mood rather than specific objects."""
@@ -151,11 +161,19 @@ Create an optimized FLUX.2 prompt that:
 9. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
 10. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
+⚠️ LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
+11. If the Interest Theme contains specific BRAND NAMES → Replace with generic category ("Nike shoes" → "athletic footwear", "iPhone" → "premium smartphone")
+12. If the Interest Theme contains PERSON NAMES or CELEBRITIES → Replace with role description ("Cristiano Ronaldo" → "professional male footballer", "Elon Musk" → "tech entrepreneur")
+13. If the Interest Theme contains COPYRIGHTED CHARACTERS/FRANCHISES → Replace with generic description ("Batman" → "superhero character", "Pokémon" → "collectible game creatures")
+14. ALWAYS use neutral, generic, descriptive terms to avoid trademark and copyright violations
+15. Examples: "luxury sports car" (not Ferrari), "gaming console" (not PlayStation), "streaming platform" (not Netflix)
+
 REMEMBER: 
 - Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT
 - Create rich backgrounds with depth and texture
 - Interpret interests abstractly - focus on mood and atmosphere
 - Give the AI creative freedom to interpret the theme
+- GENERALIZE any specific brands, persons, or protected content
 
 OUTPUT: Only the final optimized prompt text (75-125 words), no explanations or markdown."""
 
