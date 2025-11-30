@@ -111,42 +111,53 @@ Describe the image following these strict guidelines:
             system_message = """You are an expert in crafting prompts for FLUX.2 image generation by Black Forest Labs.
 Your task is to optimize advertising image prompts following the structure: Subject + Action + Style + Context.
 
-CRITICAL RULES for FLUX.2:
-1. Word order matters - most important elements FIRST
-2. Keep prompts 50-100 words (concise but descriptive)
-3. Use commercial photography terminology
-4. Integrate trending interests SUBTLY in background/mood/setting
-5. Focus on product as hero, trends enhance atmosphere
-6. Avoid overloading - quality over quantity
+CRITICAL RULES for FLUX.2 with Image Reference:
+1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and ATMOSPHERIC BACKGROUND
+2. Create an immersive lifestyle environment that reflects the user interest theme
+3. Keep prompts 75-125 words allowing more creative detail
+4. Use professional product photography terminology
+5. Translate user interests into ABSTRACT ATMOSPHERE and MOOD rather than literal objects
+6. Create fuller backgrounds with depth, texture, and environmental context
+7. Format: Scene Setup with Atmosphere → Environmental Details → Lighting → Mood → Composition
+8. Avoid describing the product itself - it's already in the reference image
+9. IMPORTANT: Create rich, immersive backgrounds that evoke the lifestyle theme without being literal
 
-Format: Subject (product), Action (display), Style (photography type), Context (setting, lighting, mood)"""
+Example structure: "Professional studio product photography with [product] as hero product, set in [atmospheric description of environment related to interest theme], [environmental textures and depth], [lighting style creating specific mood], [emotional atmosphere], [composition]"
 
-            analysis_context = ""
-            if image_analysis:
-                analysis_context = f"\nIMAGE ANALYSIS (Incorporate these details):\n{image_analysis}"
+The reference image contains the product. Your prompt should describe an ATMOSPHERIC SCENE that evokes the lifestyle theme through environment and mood rather than specific objects."""
 
             user_message = f"""Optimize this advertising image prompt for FLUX.2:
 
-PRODUCT: {product_description}
-TARGET AUDIENCE: {user_age} year old {user_occupation}
-TARGET LANGUAGE: {user_language}
-TRENDING INTERESTS: {', '.join(top_interests)}{analysis_context}
+CONTEXT:
+- Product: {product_description}
+- Target Audience: {user_age} year old {user_occupation}
+- TARGET LANGUAGE: {user_language}
+- Interest Theme: {top_interests[0] if top_interests else 'lifestyle'}
+- Note: Product image is provided as reference
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
 Create an optimized FLUX.2 prompt that:
-1. Showcases the product prominently (hero element)
-2. Subtly integrates trending interests in background/atmosphere
-3. Appeals to target demographic emotionally
-4. Uses professional photography language
-5. Follows Subject → Action → Style → Context structure
-6. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
-7. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
-8. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
-9. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
-OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
+1. Focuses on creating an ATMOSPHERIC ENVIRONMENT that reflects the interest theme
+2. Translates the interest into abstract mood, lighting, and environmental qualities
+3. Creates a fuller background with depth, texture, and spatial context
+4. Uses professional product photography terminology
+5. Describes lighting, atmosphere, and emotional tone
+6. Evokes the lifestyle theme through environment rather than literal objects
+7. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+8. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
+9. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
+10. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
+
+REMEMBER: 
+- Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT
+- Create rich backgrounds with depth and texture
+- Interpret interests abstractly - focus on mood and atmosphere
+- Give the AI creative freedom to interpret the theme
+
+OUTPUT: Only the final optimized prompt text (75-125 words), no explanations or markdown."""
 
             response = await self.client.chat.completions.create(
                 model="gpt-4o",  # Better for creative optimization

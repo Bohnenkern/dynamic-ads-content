@@ -330,6 +330,7 @@ class ImageGenerationService:
     ) -> Dict[str, Dict[str, Any]]:
         """
         Generates images for multiple trend categories with optional product image reference
+        PARALLELIZED: All requests run concurrently for faster execution
 
         Args:
             trend_prompts: Dictionary with trend_category -> prompt mappings
@@ -340,20 +341,40 @@ class ImageGenerationService:
         Returns:
             Dictionary with trend_category -> result mappings (containing image_url and metadata)
         """
-        results = {}
+        import asyncio
+
+        logger.info(
+            f"Starting parallel image generation for {len(trend_prompts)} trends...")
+
+        # Create tasks for parallel execution
+        tasks = []
+        trend_categories = []
 
         for trend_category, prompt in trend_prompts.items():
-            result = await self.generate_image_for_trend(
+            task = self.generate_image_for_trend(
                 prompt=prompt,
                 trend_category=trend_category,
                 product_name=product_name,
                 reference_image_url=reference_image_url,
                 image_prompt_strength=image_prompt_strength
             )
-            if result:
+            tasks.append(task)
+            trend_categories.append(trend_category)
+
+        # Execute all tasks in parallel
+        results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Build results dictionary
+        results = {}
+        for trend_category, result in zip(trend_categories, results_list):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Error generating image for {trend_category}: {str(result)}")
+            elif result:
                 results[trend_category] = result
 
-        logger.info(f"Generated images for {len(results)} trend categories")
+        logger.info(
+            f"Parallel generation complete: {len(results)}/{len(trend_prompts)} images generated successfully")
         return results
 
     async def generate_images_for_users(
@@ -363,6 +384,7 @@ class ImageGenerationService:
     ) -> Dict[int, Dict[str, Any]]:
         """
         Generates images for multiple users based on prompts
+        PARALLELIZED: All requests run concurrently for faster execution
 
         Args:
             structured_prompts: Dictionary with user_id -> prompt mappings
@@ -372,18 +394,38 @@ class ImageGenerationService:
         Returns:
             Dictionary with user_id -> result mappings (containing image_url and metadata)
         """
-        results = {}
+        import asyncio
+
+        logger.info(
+            f"Starting parallel image generation for {len(structured_prompts)} users...")
+
+        # Create tasks for parallel execution
+        tasks = []
+        user_ids = []
 
         for user_id, prompt in structured_prompts.items():
-            result = await self.generate_image_with_black_forest(
+            task = self.generate_image_with_black_forest(
                 prompt=prompt,
                 user_id=user_id,
                 product_name=product_name
             )
-            if result:
+            tasks.append(task)
+            user_ids.append(user_id)
+
+        # Execute all tasks in parallel
+        results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Build results dictionary
+        results = {}
+        for user_id, result in zip(user_ids, results_list):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Error generating image for user {user_id}: {str(result)}")
+            elif result:
                 results[user_id] = result
 
-        logger.info(f"Generated images for {len(results)} users")
+        logger.info(
+            f"Parallel generation complete: {len(results)}/{len(structured_prompts)} images generated successfully")
         return results
 
     def get_cached_image(self, user_id: int) -> Optional[Dict[str, Any]]:

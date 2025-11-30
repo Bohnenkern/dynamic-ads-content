@@ -24,8 +24,8 @@ class ImagePromptBuilder:
 
         Args:
             product_description: Description of the product being advertised
-            trend_category: The trend category (e.g., "Technology", "Sports")
-            trend_interests: List of interests in this trend category
+            trend_category: The trend category (e.g., "Technology & AI", "Sports & Fitness")
+            trend_interests: List of SPECIFIC interests in this trend (e.g., ["Machine Learning", "Deep Learning"] not just category)
             additional_context: Optional additional context
 
         Returns:
@@ -37,9 +37,9 @@ class ImagePromptBuilder:
         background = self._generate_background_for_category(
             trend_category, trend_interests)
 
-        # Build lifestyle elements based on trend interests
+        # Build lifestyle elements based on SINGLE MOST RELEVANT interest (not multiple)
         lifestyle_elements = self._generate_lifestyle_elements_for_trend(
-            trend_category, trend_interests[:3]
+            trend_category, trend_interests[:1]
         )
 
         structured_prompt = {
@@ -54,8 +54,8 @@ class ImagePromptBuilder:
             ],
             "context": {
                 "trend_category": trend_category,
-                "trend_interests": trend_interests[:3],
-                "lifestyle_theme": f"Subtle {trend_category.lower()} lifestyle integration in background"
+                "primary_interest": trend_interests[0] if trend_interests else trend_category,
+                "lifestyle_theme": f"Create atmospheric environment inspired by {trend_interests[0] if trend_interests else trend_category} lifestyle with immersive background depth and thematic mood"
             },
             "style": "Ultra-realistic product photography with commercial quality",
             "color_palette": color_palette,
@@ -279,17 +279,79 @@ class ImagePromptBuilder:
         return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
 
     def _generate_lifestyle_elements_for_trend(self, category: str, interests: List[str]) -> str:
-        """Generates subtle lifestyle elements for background based on trend"""
+        """Generates atmospheric lifestyle environment based on interest theme - abstract and immersive"""
+        # Select the FIRST interest and translate to atmospheric description
+        if interests:
+            interest = interests[0]
+            interest_lower = interest.lower()
+
+            # Map interests to ATMOSPHERIC ENVIRONMENTS rather than single objects
+            if "machine learning" in interest_lower or "deep learning" in interest_lower:
+                return "modern tech workspace atmosphere with subtle digital elements and clean minimalist aesthetic in background"
+            elif "chatgpt" in interest_lower or "ai" in interest_lower:
+                return "contemporary digital workspace environment with soft ambient glow and technological aesthetic"
+            elif "trail running" in interest_lower:
+                return "natural outdoor environment with organic textures and athletic energy in the atmospheric background"
+            elif "marathon" in interest_lower or "running" in interest_lower:
+                return "active lifestyle setting with dynamic energy and achievement-oriented atmosphere"
+            elif "pc gaming" in interest_lower:
+                return "immersive gaming setup environment with ambient lighting and entertainment-focused atmosphere"
+            elif "mobile gaming" in interest_lower:
+                return "casual entertainment space with modern digital lifestyle aesthetic"
+            elif "rpg games" in interest_lower or "indie games" in interest_lower:
+                return "creative gaming atmosphere with artistic and immersive environmental qualities"
+            elif "portrait photography" in interest_lower or "street photography" in interest_lower:
+                return "artistic creative workspace with visual storytelling atmosphere and professional aesthetic"
+            elif "photo editing" in interest_lower:
+                return "digital creative studio environment with focused artistic workflow atmosphere"
+            elif "vegan cooking" in interest_lower:
+                return "natural wholesome kitchen atmosphere with organic textures and fresh healthy lifestyle aesthetic"
+            elif "meal prep" in interest_lower:
+                return "organized culinary workspace with efficient lifestyle atmosphere and clean aesthetic"
+            elif "cooking" in interest_lower or "international cuisine" in interest_lower:
+                return "gourmet kitchen environment with culinary passion and sophisticated food culture atmosphere"
+            elif "live music" in interest_lower or "indie music" in interest_lower:
+                return "artistic musical atmosphere with creative energy and cultural lifestyle aesthetic"
+            elif "guitar" in interest_lower or "playing guitar" in interest_lower:
+                return "musical creative space with artistic expression and melodic atmosphere"
+            elif "beach holidays" in interest_lower or "island hopping" in interest_lower:
+                return "relaxed travel lifestyle atmosphere with wanderlust aesthetic and vacation vibes"
+            elif "travel photography" in interest_lower:
+                return "adventurous explorer environment with worldly atmosphere and discovery aesthetic"
+            elif "wine tasting" in interest_lower or "wine pairing" in interest_lower:
+                return "sophisticated sommelier atmosphere with refined taste and elegant lifestyle aesthetic"
+            elif "fine dining" in interest_lower or "restaurant reviews" in interest_lower:
+                return "upscale culinary setting with gourmet atmosphere and refined dining aesthetic"
+            elif "crossfit" in interest_lower:
+                return "intense athletic training environment with performance-focused atmosphere and fitness dedication"
+            elif "fitness training" in interest_lower:
+                return "active wellness lifestyle setting with health-conscious atmosphere and motivational energy"
+            elif "netflix binging" in interest_lower or "streaming" in interest_lower:
+                return "cozy entertainment space with relaxed viewing atmosphere and comfortable lifestyle aesthetic"
+            elif "basketball" in interest_lower:
+                return "dynamic sports environment with athletic energy and competitive spirit atmosphere"
+            elif "football" in interest_lower or "playing football" in interest_lower:
+                return "energetic sports setting with team spirit and athletic lifestyle atmosphere"
+            elif "strategy games" in interest_lower:
+                return "focused gaming workspace with tactical thinking atmosphere and competitive aesthetic"
+            elif "5g technology" in interest_lower or "wearable tech" in interest_lower:
+                return "cutting-edge tech lifestyle environment with innovative atmosphere and futuristic aesthetic"
+            elif "smart home" in interest_lower:
+                return "intelligent connected living space with automated lifestyle atmosphere and modern convenience"
+            else:
+                # Abstract interpretation of any interest
+                # Fallback to category-based
+                return f"{interest} inspired lifestyle environment with thematic atmosphere and cultural aesthetic"
         elements_map = {
-            "Technology": "subtle laptop and smartphone in soft focus background",
-            "Sports": "subtle sports equipment like dumbbells or yoga mat in background",
-            "Gaming": "subtle gaming controller or headset in soft focus background",
-            "Travel": "subtle map or travel items in background",
-            "Food": "subtle fresh ingredients or cooking utensils in background",
-            "Music": "subtle headphones or vinyl records in background",
-            "Fashion": "subtle fabric swatches or accessories in background",
-            "Health": "subtle wellness items like plants or natural elements",
-            "Outdoor": "subtle natural elements like wood or stones in background"
+            "Technology": "laptop and smartphone in soft focus background",
+            "Sports": "sports equipment in background",
+            "Gaming": "gaming controller in soft focus background",
+            "Travel": "map or travel items in background",
+            "Food": "fresh ingredients in background",
+            "Music": "headphones in background",
+            "Fashion": "fabric swatches in background",
+            "Health": "wellness items in background",
+            "Outdoor": "natural elements in background"
         }
         return elements_map.get(category, "subtle lifestyle props in soft focus background")
 

@@ -1,22 +1,29 @@
 [
   {
     "id": 1,
-    "name": "Anna Schmidt",
+    "name": "User 1",
     "age": 28,
     "language": "de",
     "location": "Berlin",
     "interests": [
-      "AI",
-      "Running",
-      "Healthy Eating",
-      "Music",
-      "Photography"
+      "Machine Learning",
+      "Deep Learning",
+      "ChatGPT",
+      "Trail Running",
+      "Marathon Training",
+      "Vegan Cooking",
+      "Meal Prep",
+      "Live Music",
+      "Indie Music",
+      "Portrait Photography",
+      "Street Photography"
     ],
     "hobbies": [
-      "Marathon Training",
-      "Cooking",
+      "Running",
+      "Healthy Eating",
       "Concert Visits",
-      "Tech Blogging"
+      "Tech Blogging",
+      "Photo Editing"
     ],
     "demographics": {
       "gender": "female",
@@ -26,22 +33,28 @@
   },
   {
     "id": 2,
-    "name": "Max Müller",
+    "name": "User 2",
     "age": 35,
     "language": "de",
     "location": "Munich",
     "interests": [
       "Football",
-      "Gaming",
+      "Playing Football",
+      "PC Gaming",
+      "Strategy Games",
       "Fine Dining",
+      "Wine Pairing",
       "City Trips",
-      "Smartphones"
+      "Travel Photography",
+      "Smartphones",
+      "5G Technology",
+      "Wearable Tech"
     ],
     "hobbies": [
-      "Playing Football",
       "Video Gaming",
       "Restaurant Reviews",
-      "Travel Blogging"
+      "Travel Blogging",
+      "Wine Tasting"
     ],
     "demographics": {
       "gender": "male",
@@ -51,22 +64,28 @@
   },
   {
     "id": 3,
-    "name": "Sarah Weber",
+    "name": "User 3",
     "age": 24,
     "language": "en",
     "location": "Hamburg",
     "interests": [
       "Beach Holidays",
-      "Movies",
+      "Beach Volleyball",
+      "Swimming",
+      "Netflix Binging",
+      "Streaming Services",
       "Basketball",
-      "Cooking",
-      "Adventure"
+      "Fitness Training",
+      "International Cuisine",
+      "Food Photography",
+      "Adventure Travel",
+      "Travel Planning"
     ],
     "hobbies": [
-      "Beach Volleyball",
       "Movie Nights",
-      "Travel Planning",
-      "Recipe Experimentation"
+      "Recipe Experimentation",
+      "Cooking",
+      "Social Media Marketing"
     ],
     "demographics": {
       "gender": "female",
@@ -76,22 +95,29 @@
   },
   {
     "id": 4,
-    "name": "Tom Fischer",
+    "name": "User 4",
     "age": 42,
     "language": "fr",
     "location": "Frankfurt",
     "interests": [
-      "Concerts",
+      "Live Music",
+      "Music Festivals",
       "Fine Dining",
+      "Wine Tasting",
       "AI",
+      "Machine Learning",
       "Running",
-      "City Trips"
+      "Fitness Training",
+      "CrossFit",
+      "Luxury Travel",
+      "Business Travel"
     ],
     "hobbies": [
       "Playing Guitar",
-      "Wine Tasting",
-      "Fitness Training",
-      "Business Travel"
+      "Concert Visits",
+      "City Trips",
+      "Leadership",
+      "Networking"
     ],
     "demographics": {
       "gender": "male",
@@ -101,22 +127,29 @@
   },
   {
     "id": 5,
-    "name": "Lisa Wagner",
+    "name": "User 5",
     "age": 31,
     "language": "es",
     "location": "Cologne",
     "interests": [
-      "Gaming",
+      "Mobile Gaming",
+      "RPG Games",
+      "Indie Games",
       "Smartphones",
-      "Movies",
-      "Healthy Eating",
-      "Beach Holidays"
+      "Smart Home",
+      "Wearable Tech",
+      "Netflix Binging",
+      "TV Series",
+      "Vegan Cooking",
+      "Meal Prep",
+      "Beach Holidays",
+      "Island Hopping"
     ],
     "hobbies": [
-      "Mobile Gaming",
+      "Gaming",
       "Tech Reviews",
       "Streaming",
-      "Meal Prep"
+      "Healthy Eating"
     ],
     "demographics": {
       "gender": "female",
