@@ -117,7 +117,7 @@ Describe the image following these strict guidelines:
                 system_message = """You are an expert in creating PHOTOREALISTIC, AUTHENTIC advertising scenarios for FLUX.2 image generation.
 Your task is to create NATURAL, BELIEVABLE scenes that look like high-end product photography.
 
-📸 CRITICAL RULES for REALISTIC SCENARIOS:
+CRITICAL RULES for REALISTIC SCENARIOS:
 1. The product image is PROVIDED as reference - show it in a REAL-WORLD context.
 2. Focus on PHOTOREALISM: Natural lighting, authentic textures, realistic depth of field.
 3. Avoid exaggerated effects, neon lights, or fantasy elements unless specifically requested by the niche.
@@ -127,11 +127,11 @@ Your task is to create NATURAL, BELIEVABLE scenes that look like high-end produc
 7. Format: Realistic Setting → Natural Action → Authentic Details → Photography Lighting
 8. IMPORTANT: Match the EXACT specific interest, not the generic category.
 
-⚠️ LEGAL COMPLIANCE:
+LEGAL COMPLIANCE:
 9. NEVER use specific brand names or real person names. Generalize to "luxury car", "professional athlete", etc.
 10. Use SPECIFIC LOCATIONS but keep them generic enough to be legally safe (e.g., "modern office", "sunny beach").
 
-🎯 SCENARIO EXAMPLES:
+SCENARIO EXAMPLES:
 - "Trail Running" → "A runner pausing on a rocky trail in the Alps, tying their shoe, soft morning mist, dew on grass, hyper-realistic texture."
 - "Coffee" → "A steaming cup on a rustic wooden table, morning sunlight streaming through a window, dust motes dancing in light, cozy atmosphere."
 - "Office Work" → "A modern desk setup with natural light, blurred office background, focus on the product, clean and professional look."
@@ -142,7 +142,7 @@ The reference image contains the product. Show it in a REALISTIC, HIGH-QUALITY P
                 system_message = """You are an expert in creating POLISHED, SEMI-REALISTIC advertising scenarios for FLUX.2 image generation.
 Your task is to create scenes that are grounded in reality but ENHANCED with artistic lighting and composition.
 
-🎨 CRITICAL RULES for SEMI-REALISTIC SCENARIOS:
+CRITICAL RULES for SEMI-REALISTIC SCENARIOS:
 1. The product image is PROVIDED as reference - show it in an ENHANCED real-world context.
 2. Balance REALISM with STYLE: Use realistic textures but perfect, studio-like lighting.
 3. Colors should be slightly more vibrant, lighting more dramatic than real life.
@@ -152,11 +152,11 @@ Your task is to create scenes that are grounded in reality but ENHANCED with art
 7. Format: Polished Setting → Stylized Action → Enhanced Details → Studio Lighting
 8. IMPORTANT: Match the EXACT specific interest.
 
-⚠️ LEGAL COMPLIANCE:
+LEGAL COMPLIANCE:
 9. NEVER use specific brand names or real person names.
 10. Use SPECIFIC LOCATIONS but stylized.
 
-🎯 SCENARIO EXAMPLES:
+SCENARIO EXAMPLES:
 - "Fitness" → "A gym scene with dramatic rim lighting highlighting the athlete, sweat glistening, background slightly darkened for focus."
 - "Tech" → "A sleek modern desk with cool blue ambient lighting, product glowing slightly, high-tech atmosphere but realistic props."
 - "Travel" → "A perfect sunset beach scene, colors enhanced for warmth, product placed perfectly on a rock, dream-like quality."
@@ -167,7 +167,7 @@ The reference image contains the product. Show it in a POLISHED, COMMERCIAL, SEM
                 system_message = """You are an expert in crafting DYNAMIC, ACTION-PACKED prompts for FLUX.2 image generation by Black Forest Labs.
 Your task is to create VIVID, DRAMATIC advertising scenarios that put the product IN MOTION and IN UNEXPECTED SITUATIONS.
 
-🎬 CRITICAL RULES for DYNAMIC PRODUCT SCENARIOS:
+CRITICAL RULES for DYNAMIC PRODUCT SCENARIOS:
 1. The product image is PROVIDED as reference - BUT now show it IN ACTION, IN MOTION, BEING USED
 2. Create SPECIFIC, CONCRETE scenarios (NOT abstract atmospheres): "speeding through narrow Italian coastal roads", "flying off a sand dune jump in Dubai desert"
 3. Match HYPER-SPECIFIC user niches: If user likes "Beach Volleyball", show beach volleyball court in Rio. If "Cristiano Ronaldo" (generalize to "professional footballer"), show football stadium action.
@@ -178,7 +178,7 @@ Your task is to create VIVID, DRAMATIC advertising scenarios that put the produc
 8. BE BOLD AND CREATIVE: Car driving through a kitchen? Smartphone surfing on ocean wave? GO FOR IT!
 9. IMPORTANT: Match the EXACT specific interest, not the generic category
 
-⚠️ LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
+LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
 10. NEVER use specific brand names, trademarks, or company names (e.g., "Nike" → "athletic footwear", "Apple" → "smartphone", "Mercedes" → "luxury car")
 11. NEVER use real person names, celebrities, or public figures (e.g., "Cristiano Ronaldo" → "professional football stadium", "Taylor Swift" → "pop music concert stage")
 12. NEVER reference copyrighted characters, franchises, or IP (e.g., "Mario" → "retro video game arcade", "Star Wars" → "sci-fi space battle")
@@ -186,7 +186,7 @@ Your task is to create VIVID, DRAMATIC advertising scenarios that put the produc
 14. For sports: Use specific venues/scenarios ("Olympic swimming pool", "Wimbledon-style grass court") instead of athlete names
 15. For brands: Use specific use-cases ("luxury sports car racing circuit", "premium tech startup office") instead of brand names
 
-🎯 SCENARIO EXAMPLES:
+SCENARIO EXAMPLES:
 - Car interest → "Racing through the winding roads of Swiss Alps, hairpin turns, dramatic mountain backdrop, motion blur, golden hour lighting"
 - Beach Holiday → "Launching off a sand dune on a pristine Maldives beach, turquoise water splashing, palm trees swaying, dynamic mid-air shot"
 - Gaming → "Inside a neon-lit Tokyo gaming arcade, RGB lights reflecting, surrounded by excited gamers, high-energy atmosphere"
@@ -196,7 +196,7 @@ The reference image contains the product. Show it in a SPECIFIC, DRAMATIC, ACTIO
 
             user_message = f"""Create a {'PHOTOREALISTIC' if style_preset == 'realistic' else 'POLISHED' if style_preset == 'semi_realistic' else 'DYNAMIC, ACTION-PACKED'} advertising scenario for FLUX.2:
 
-🎯 CONTEXT:
+CONTEXT:
 - Product: {product_description}
 - Target Audience: {user_age} year old {user_occupation}
 - TARGET LANGUAGE: {user_language}
@@ -207,7 +207,7 @@ The reference image contains the product. Show it in a SPECIFIC, DRAMATIC, ACTIO
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
-🎬 Create a SCENARIO that:
+Create a SCENARIO that:
 
 1. Shows the product in a context matching the style: {'Natural and authentic' if style_preset == 'realistic' else 'Enhanced and commercial' if style_preset == 'semi_realistic' else 'Dynamic and unexpected'}
 2. Matches the EXACT SPECIFIC interest niche
@@ -219,7 +219,7 @@ BASE PROMPT STRUCTURE:
 8. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
 9. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
-⚠️ LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
+LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
 10. If Interest contains BRAND NAMES → Use specific scenario instead
 11. If Interest contains PERSON NAMES → Use their venue/context
 12. If Interest contains COPYRIGHTED CONTENT → Use setting

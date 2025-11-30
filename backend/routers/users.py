@@ -396,7 +396,7 @@ async def generate_campaign(
     # STEP 6: Build prompts for EACH USER'S SPECIFIC INTERESTS (one image per interest)
     # NEW APPROACH: Generate 3 images per user (one per interest) = 15 total images for 5 users
     logger.info(
-        f"🎨 Step 6: Building prompts for each user's {IMAGES_PER_USER} interests...")
+        f" Step 6: Building prompts for each user's {IMAGES_PER_USER} interests...")
     logger.info(
         f"    Total images to generate: {len(match_results)} users × {IMAGES_PER_USER} interests = {len(match_results) * IMAGES_PER_USER} images")
 
@@ -487,14 +487,14 @@ async def generate_campaign(
         api_calls["openai_gpt4o"] += 1  # Count GPT-4o optimization call
 
     logger.info(
-        f"✅ Step 6 Complete: Optimized {len(user_interest_prompts)} user-interest prompts in parallel")
+        f"Step 6 Complete: Optimized {len(user_interest_prompts)} user-interest prompts in parallel")
     logger.info(
         f"    API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
 
     # STEP 7 & 9: Generate images for each user's interests AND previews in parallel
     # Generate exactly 3 images per user (one per interest) = 15 images total for 5 users
     logger.info(
-        f"🖼️  Step 7 & 9: Generating {len(user_interest_prompts)} user-interest images + 3 preview images in parallel...")
+        f"Step 7 & 9: Generating {len(user_interest_prompts)} user-interest images + 3 preview images in parallel...")
     logger.info(
         f"    Using FLUX.2 Image Editing with product image as input_image")
     logger.info(
@@ -581,15 +581,15 @@ async def generate_campaign(
                 api_calls["black_forest"] += 1
 
             logger.info(
-                f"✅ Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
+                f"Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
 
     logger.info(
-        f"✅ Step 7 & 9 Complete: Generated all images in parallel (much faster!)")
+        f"Step 7 & 9 Complete: Generated all images in parallel (much faster!)")
     logger.info(
         f"    Black Forest API calls: {api_calls['black_forest']}")
 
     # STEP 8: Map generated images to users based on their interests
-    logger.info(f"📊 Step 8: Mapping user-interest images to users...")
+    logger.info(f"Step 8: Mapping user-interest images to users...")
     campaign_results = []
 
     for match_result in match_results:
@@ -633,12 +633,12 @@ async def generate_campaign(
         campaign_results.append(result)
 
     logger.info(
-        f"✅ Step 8 Complete: Mapped {len(user_interest_images)} images to {len(campaign_results)} users")
+        f"Step 8 Complete: Mapped {len(user_interest_images)} images to {len(campaign_results)} users")
 
     logger.info("=" * 70)
-    logger.info("🎉 CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
+    logger.info("CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
     logger.info("=" * 70)
-    logger.info("📈 API USAGE STATISTICS:")
+    logger.info("API USAGE STATISTICS:")
     logger.info(
         f"   • OpenAI GPT-4o-mini calls: {api_calls['openai_gpt4o_mini']}")
     logger.info(f"   • OpenAI GPT-4o calls: {api_calls['openai_gpt4o']}")
