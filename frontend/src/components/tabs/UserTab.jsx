@@ -145,7 +145,6 @@ const UserTab = ({ user, userResult, campaignResult }) => {
                       </div>
                       <div className="ad-info">
                         <h4>{image.interest}</h4>
-                        <p className="ad-prompt">{image.prompt_used?.substring(0, 100)}...</p>
                       </div>
                     </>
                   ) : (
