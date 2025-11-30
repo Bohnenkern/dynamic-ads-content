@@ -99,22 +99,35 @@ class ImageGenerationService:
                             headers={"X-Key": self.black_forest_api_key}
                         )
                         status = status_resp.json()
-                        if status.get("status") == "Ready":
+
+                        # DEBUG: Log full status on first attempt and every 20 seconds
+                        if attempt == 0 or (attempt + 1) % 20 == 0:
+                            logger.info(
+                                f"User {user_id}: Polling status at {attempt + 1}s: {status}")
+
+                        # Check status (case-insensitive)
+                        current_status = str(status.get("status", "")).lower()
+
+                        if current_status == "ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"User {user_id}: Image ready after {attempt + 1} seconds")
+                                f"✅ User {user_id}: Image ready after {attempt + 1} seconds")
                             break
-                        elif status.get("status") in ["Error", "Failed"]:
+                        elif current_status in ["error", "failed", "request_moderated"]:
                             logger.error(
-                                f"User {user_id}: Generation failed - {status}")
+                                f"❌ User {user_id}: Generation failed with status '{current_status}' - {status}")
+                            break
+                        elif "not found" in str(status).lower():
+                            logger.error(
+                                f"❌ User {user_id}: Task not found - API returned: {status}")
                             break
                         # Log progress every 20 seconds
                         elif (attempt + 1) % 20 == 0:
                             logger.info(
-                                f" User {user_id}: Still processing... ({attempt + 1}s elapsed)")
+                                f"⏳ User {user_id}: Still processing (status: {current_status})... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"User {user_id}: Polling timeout after 60 seconds - API might be overloaded")
+                            f"⚠️ User {user_id}: Polling timeout after 60 seconds - Last status: {status.get('status', 'unknown')}")
                         image_url = None
                 else:
                     image_url = None
@@ -296,22 +309,35 @@ class ImageGenerationService:
                             headers={"X-Key": self.black_forest_api_key}
                         )
                         status = status_resp.json()
-                        if status.get("status") == "Ready":
+
+                        # DEBUG: Log full status on first attempt and every 20 seconds
+                        if attempt == 0 or (attempt + 1) % 20 == 0:
+                            logger.info(
+                                f"{trend_category}: Polling status at {attempt + 1}s: {status}")
+
+                        # Check status (case-insensitive)
+                        current_status = str(status.get("status", "")).lower()
+
+                        if current_status == "ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"{trend_category}: Image ready after {attempt + 1} seconds")
+                                f"✅ {trend_category}: Image ready after {attempt + 1} seconds")
                             break
-                        elif status.get("status") in ["Error", "Failed"]:
+                        elif current_status in ["error", "failed", "request_moderated"]:
                             logger.error(
-                                f" {trend_category}: Generation failed - {status}")
+                                f"❌ {trend_category}: Generation failed with status '{current_status}' - {status}")
+                            break
+                        elif "not found" in str(status).lower():
+                            logger.error(
+                                f"❌ {trend_category}: Task not found - API returned: {status}")
                             break
                         # Log progress every 20 seconds
                         elif (attempt + 1) % 20 == 0:
                             logger.info(
-                                f"{trend_category}: Still processing... ({attempt + 1}s elapsed)")
+                                f"⏳ {trend_category}: Still processing (status: {current_status})... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"{trend_category}: Polling timeout after 60 seconds - API might be overloaded")
+                            f"⚠️ {trend_category}: Polling timeout after 60 seconds - Last status: {status.get('status', 'unknown')}")
                         image_url = None
                 else:
                     image_url = None
