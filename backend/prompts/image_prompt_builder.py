@@ -43,26 +43,26 @@ class ImagePromptBuilder:
         )
 
         structured_prompt = {
-            "scene": f"Professional studio product photography setup with polished surface, {lifestyle_elements}",
+            "scene": f"DYNAMIC ACTION SCENARIO: {lifestyle_elements}",
             "subjects": [
                 {
-                    "description": f"{product_description} as hero product",
-                    "pose": "Stationary on surface",
-                    "position": "Center foreground on polished surface",
+                    "description": f"{product_description} as the hero",
+                    "pose": "IN MOTION, ACTIVELY BEING USED in dramatic action",
+                    "position": "Dynamic positioning in the middle of the action scene",
                     "color_palette": color_palette[:2]
                 }
             ],
             "context": {
                 "trend_category": trend_category,
                 "primary_interest": trend_interests[0] if trend_interests else trend_category,
-                "lifestyle_theme": f"Create atmospheric environment inspired by {trend_interests[0] if trend_interests else trend_category} lifestyle with immersive background depth and thematic mood"
+                "lifestyle_theme": f"Show product IN DRAMATIC ACTION specifically matching {trend_interests[0] if trend_interests else trend_category} niche - use SPECIFIC locations, CINEMATIC motion, and UNEXPECTED creative scenarios"
             },
-            "style": "Ultra-realistic product photography with commercial quality",
+            "style": "Cinematic action photography with dramatic composition and motion",
             "color_palette": color_palette,
-            "lighting": "Three-point softbox setup creating soft, diffused highlights with no harsh shadows",
+            "lighting": "Dramatic cinematic lighting with motion blur and dynamic highlights",
             "mood": mood,
             "background": background,
-            "composition": "rule of thirds with clear focus on product",
+            "composition": "dynamic action composition with product as the hero in motion",
             "camera": {
                 "angle": "slightly elevated angle for premium feel",
                 "distance": "medium shot emphasizing product",
@@ -243,15 +243,16 @@ class ImagePromptBuilder:
             return "Professional lifestyle setting with clean, aspirational atmosphere"
 
     def _determine_mood_for_category(self, category: str) -> str:
-        """Determines mood based on trend category"""
+        """Determines DRAMATIC, ACTION-ORIENTED mood based on trend category"""
         mood_map = {
-            "Technology": "Sleek, modern, innovative, tech-forward",
-            "Sports": "Energetic, dynamic, active, motivating",
-            "Food": "Warm, inviting, appetizing, gourmet",
-            "Travel": "Adventurous, exciting, wanderlust, aspirational",
-            "Entertainment": "Vibrant, engaging, culturally rich, entertaining"
+            "Technology": "Cutting-edge, electrifying, fast-paced, futuristic innovation in action",
+            "Sports": "Adrenaline-pumping, competitive, explosive energy, championship intensity",
+            "Food": "Sensory explosion, culinary drama, sizzling action, gastronomic excitement",
+            "Travel": "Thrilling adventure, breathtaking discovery, wanderlust in motion, epic exploration",
+            "Entertainment": "Show-stopping, electrifying performance, crowd-energizing, spectacular drama",
+            "Gaming": "Intense competition, esports championship, high-stakes gaming action, electric atmosphere"
         }
-        return mood_map.get(category, "Clean, professional, lifestyle-oriented, aspirational")
+        return mood_map.get(category, "Dynamic, action-packed, cinematic energy, dramatic excitement")
 
     def _generate_color_palette_for_category(self, category: str) -> List[str]:
         """Generates color palette based on trend category"""
@@ -265,18 +266,18 @@ class ImagePromptBuilder:
         return palette_map.get(category, ["sophisticated navy", "warm beige", "soft white", "accent gold"])
 
     def _generate_background_for_category(self, category: str, interests: List[str]) -> str:
-        """Generates background description for trend category"""
+        """Generates DYNAMIC ACTION background description for trend category"""
         background_map = {
-            "Technology": "Modern minimalist space with subtle tech elements, clean lines, futuristic ambiance",
-            "Sports": "Active lifestyle setting with subtle athletic elements, energetic atmosphere",
-            "Food": "Elegant dining atmosphere with subtle gourmet elements, warm ambiance",
-            "Travel": "Sophisticated travel-inspired setting with subtle adventure elements",
-            "Entertainment": "Vibrant cultural setting with entertainment-themed accents",
-            "Gaming": "Modern gaming setup with subtle gaming peripherals in soft focus background",
-            "Music": "Creative studio space with subtle musical instruments as background elements",
-            "Fashion": "Minimalist fashion setting with subtle textile elements, elegant atmosphere"
+            "Technology": "High-tech innovation lab with glowing displays and data streams, futuristic action environment",
+            "Sports": "Championship stadium or competition venue with crowds cheering, athletic action scene",
+            "Food": "Bustling professional kitchen mid-service with flames and motion, culinary action",
+            "Travel": "Exotic destination with dramatic landscape and adventure in progress, exploration scene",
+            "Entertainment": "Concert stage with dramatic lighting and crowd energy, performance in action",
+            "Gaming": "Professional esports arena with massive screens and tournament atmosphere, competitive gaming action",
+            "Music": "Live music venue mid-performance with stage lights and crowd energy, concert action",
+            "Fashion": "Fashion show runway with dramatic lighting and audience, style showcase in motion"
         }
-        return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
+        return background_map.get(category, "Dynamic action environment with dramatic details and cinematic energy")
 
     def _generate_lifestyle_elements_for_trend(self, category: str, interests: List[str]) -> str:
         """Generates atmospheric lifestyle environment based on interest theme - abstract and immersive"""

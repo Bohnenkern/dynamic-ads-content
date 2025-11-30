@@ -110,73 +110,83 @@ Describe the image following these strict guidelines:
             top_interests = [m['interest']
                              for m in matched_interests[:3]] if matched_interests else []
 
-            system_message = """You are an expert in crafting prompts for FLUX.2 image generation by Black Forest Labs.
-Your task is to optimize advertising image prompts following the structure: Subject + Action + Style + Context.
+            system_message = """You are an expert in crafting DYNAMIC, ACTION-PACKED prompts for FLUX.2 image generation by Black Forest Labs.
+Your task is to create VIVID, DRAMATIC advertising scenarios that put the product IN MOTION and IN UNEXPECTED SITUATIONS.
 
-CRITICAL RULES for FLUX.2 with Image Reference:
-1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and ATMOSPHERIC BACKGROUND
-2. Create an immersive lifestyle environment that reflects the user interest theme
-3. Keep prompts 75-125 words allowing more creative detail
-4. Use professional product photography terminology
-5. Translate user interests into ABSTRACT ATMOSPHERE and MOOD rather than literal objects
-6. Create fuller backgrounds with depth, texture, and environmental context
-7. Format: Scene Setup with Atmosphere → Environmental Details → Lighting → Mood → Composition
-8. Avoid describing the product itself - it's already in the reference image
-9. IMPORTANT: Create rich, immersive backgrounds that evoke the lifestyle theme without being literal
+🎬 CRITICAL RULES for DYNAMIC PRODUCT SCENARIOS:
+1. The product image is PROVIDED as reference - BUT now show it IN ACTION, IN MOTION, BEING USED
+2. Create SPECIFIC, CONCRETE scenarios (NOT abstract atmospheres): "speeding through narrow Italian coastal roads", "flying off a sand dune jump in Dubai desert"
+3. Match HYPER-SPECIFIC user niches: If user likes "Beach Volleyball", show beach volleyball court in Rio. If "Cristiano Ronaldo" (generalize to "professional footballer"), show football stadium action.
+4. Keep prompts 100-150 words for DETAILED action scenarios
+5. Use CINEMATIC, DYNAMIC language: "racing", "soaring", "splashing", "cutting through", "launching from"
+6. Product should be THE HERO in an EXCITING, UNEXPECTED SITUATION
+7. Format: Dynamic Action → Specific Location/Niche → Dramatic Details → Cinematic Lighting → Energy/Movement
+8. BE BOLD AND CREATIVE: Car driving through a kitchen? Smartphone surfing on ocean wave? GO FOR IT!
+9. IMPORTANT: Match the EXACT specific interest, not the generic category
 
-LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
-10. NEVER use specific brand names, trademarks, or company names (e.g., "Nike" → "athletic brand", "Apple" → "tech device", "Mercedes" → "luxury car")
-11. NEVER use real person names, celebrities, or public figures (e.g., "Cristiano Ronaldo" → "male professional footballer", "Taylor Swift" → "female pop artist")
-12. NEVER reference copyrighted characters, franchises, or IP (e.g., "Mario" → "video game character", "Star Wars" → "sci-fi theme")
-13. Use GENERIC, DESCRIPTIVE terms instead: "premium sportswear", "high-end smartphone", "professional athlete"
-14. For sports: Use role descriptions ("male footballer", "female tennis player") instead of names
-15. For brands: Use category descriptions ("luxury watch brand", "sports car manufacturer") instead of names
+⚠️ LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
+10. NEVER use specific brand names, trademarks, or company names (e.g., "Nike" → "athletic footwear", "Apple" → "smartphone", "Mercedes" → "luxury car")
+11. NEVER use real person names, celebrities, or public figures (e.g., "Cristiano Ronaldo" → "professional football stadium", "Taylor Swift" → "pop music concert stage")
+12. NEVER reference copyrighted characters, franchises, or IP (e.g., "Mario" → "retro video game arcade", "Star Wars" → "sci-fi space battle")
+13. Use SPECIFIC LOCATIONS/SCENARIOS instead: "Champions League stadium", "Miami beach volleyball court", "Alpine ski resort", "Tokyo gaming arcade"
+14. For sports: Use specific venues/scenarios ("Olympic swimming pool", "Wimbledon-style grass court") instead of athlete names
+15. For brands: Use specific use-cases ("luxury sports car racing circuit", "premium tech startup office") instead of brand names
 
-Example structure: "Professional studio product photography with [product] as hero product, set in [atmospheric description of environment related to interest theme], [environmental textures and depth], [lighting style creating specific mood], [emotional atmosphere], [composition]"
+🎯 SCENARIO EXAMPLES:
+- Car interest → "Racing through the winding roads of Swiss Alps, hairpin turns, dramatic mountain backdrop, motion blur, golden hour lighting"
+- Beach Holiday → "Launching off a sand dune on a pristine Maldives beach, turquoise water splashing, palm trees swaying, dynamic mid-air shot"
+- Gaming → "Inside a neon-lit Tokyo gaming arcade, RGB lights reflecting, surrounded by excited gamers, high-energy atmosphere"
+- Running → "Sprinting through iconic marathon finish line in Berlin, crowd cheering, confetti in air, action-packed victory moment"
 
-The reference image contains the product. Your prompt should describe an ATMOSPHERIC SCENE that evokes the lifestyle theme through environment and mood rather than specific objects."""
+The reference image contains the product. Show it in a SPECIFIC, DRAMATIC, ACTION-PACKED scenario that matches the user's EXACT niche interest."""
 
-            user_message = f"""Optimize this advertising image prompt for FLUX.2:
+            user_message = f"""Create a DYNAMIC, ACTION-PACKED advertising scenario for FLUX.2:
 
-CONTEXT:
+🎯 CONTEXT:
 - Product: {product_description}
 - Target Audience: {user_age} year old {user_occupation}
 - TARGET LANGUAGE: {user_language}
-- Interest Theme: {top_interests[0] if top_interests else 'lifestyle'}
+- SPECIFIC Interest Niche: {top_interests[0] if top_interests else 'lifestyle'}
 - Note: Product image is provided as reference
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
-Create an optimized FLUX.2 prompt that:
+🎬 Create a DRAMATIC, SPECIFIC scenario that:
 
-1. Focuses on creating an ATMOSPHERIC ENVIRONMENT that reflects the interest theme
-2. Translates the interest into abstract mood, lighting, and environmental qualities
-3. Creates a fuller background with depth, texture, and spatial context
-4. Uses professional product photography terminology
-5. Describes lighting, atmosphere, and emotional tone
-6. Evokes the lifestyle theme through environment rather than literal objects
-7. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
-8. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
-9. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
-10. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
-11. Automatically decide and describe how the product should be actively used and staged in the scene to make it look interesting and cool for the specific user group, depending on the product.
+1. Shows the product IN MOTION or IN ACTION (not static!)
+2. Matches the EXACT SPECIFIC interest niche (e.g., "Beach Volleyball" → Rio beach volleyball court, "Machine Learning" → high-tech AI research lab)
+3. Creates a CONCRETE, DETAILED scenario with specific location/situation
+4. Uses DYNAMIC, CINEMATIC language: "racing", "flying", "splashing", "cutting through"
+5. Includes UNEXPECTED, CREATIVE scenarios (car in kitchen? smartphone surfing? BE BOLD!)
+6. Describes dramatic lighting, motion blur, action details
+7. Automatically decide how the product should be ACTIVELY USED in the scene to make it look exciting and cool for this specific user niche
+8. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+9. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
+10. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
+11. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
 ⚠️ LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
-11. If the Interest Theme contains specific BRAND NAMES → Replace with generic category ("Nike shoes" → "athletic footwear", "iPhone" → "premium smartphone")
-12. If the Interest Theme contains PERSON NAMES or CELEBRITIES → Replace with role description ("Cristiano Ronaldo" → "professional male footballer", "Elon Musk" → "tech entrepreneur")
-13. If the Interest Theme contains COPYRIGHTED CHARACTERS/FRANCHISES → Replace with generic description ("Batman" → "superhero character", "Pokémon" → "collectible game creatures")
-14. ALWAYS use neutral, generic, descriptive terms to avoid trademark and copyright violations
-15. Examples: "luxury sports car" (not Ferrari), "gaming console" (not PlayStation), "streaming platform" (not Netflix)
+12. If Interest contains BRAND NAMES → Use specific scenario instead ("Nike" → "Olympic athletics track", "iPhone" → "Silicon Valley tech office")
+13. If Interest contains PERSON NAMES → Use their venue/context ("Cristiano Ronaldo" → "Champions League football stadium", "Taylor Swift" → "sold-out arena concert stage")
+14. If Interest contains COPYRIGHTED CONTENT → Use setting ("Mario" → "retro 8-bit arcade game room", "Star Wars" → "futuristic space station cockpit")
+15. ALWAYS use SPECIFIC, VIVID locations and scenarios to avoid trademark violations
+16. Examples: "Formula 1 racing circuit" (not Ferrari), "Tokyo gaming arcade" (not PlayStation), "streaming service watch party" (not Netflix)
 
-REMEMBER: 
-- Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT
-- Create rich backgrounds with depth and texture
-- Interpret interests abstractly - focus on mood and atmosphere
-- Give the AI creative freedom to interpret the theme
-- GENERALIZE any specific brands, persons, or protected content
+🎯 SCENARIO EXAMPLES by Interest:
+- "Trail Running" → "Sprinting down a rugged alpine trail in Swiss mountains, mud splashing, pine trees blurring past, sunrise golden light"
+- "Beach Volleyball" → "Diving for a spike on Copacabana beach court, sand flying, Rio sunset backdrop, dynamic mid-air action"
+- "Machine Learning" → "Racing through a neon-lit AI research lab, holographic code projections, futuristic server racks, electric blue lighting"
+- "Fine Dining" → "Flying through a Michelin-star restaurant kitchen mid-service, flames from stove, chefs in motion, dramatic spotlighting"
 
-OUTPUT: Only the final optimized prompt text (75-125 words), no explanations or markdown."""
+REMEMBER:
+- Product must be IN ACTION, not static
+- Match the EXACT specific interest, not generic category
+- Be CREATIVE and DRAMATIC - unexpected scenarios are encouraged!
+- Use SPECIFIC locations and vivid details
+- GENERALIZE any brands/persons but keep scenarios SPECIFIC and EXCITING
+
+OUTPUT: Only the final optimized prompt text (100-150 words), no explanations or markdown."""
 
             response = await self.client.chat.completions.create(
                 model="gpt-4o",  # Better for creative optimization
@@ -184,8 +194,8 @@ OUTPUT: Only the final optimized prompt text (75-125 words), no explanations or 
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=250,
-                temperature=0.8  # Higher for creativity
+                max_tokens=300,  # Increased for detailed action scenarios
+                temperature=0.9  # Higher for maximum creativity and drama
             )
 
             optimized_prompt = response.choices[0].message.content.strip()

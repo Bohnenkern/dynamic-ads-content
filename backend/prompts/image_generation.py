@@ -90,9 +90,9 @@ class ImageGenerationService:
                     polling_url = result.get(
                         "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
                     logger.info(
-                        f"Polling task {task_id} for user {user_id} (max 120s)...")
+                        f"Polling task {task_id} for user {user_id} (max 60s)...")
                     import asyncio
-                    for attempt in range(120):  # 120 seconds max (increased from 60)
+                    for attempt in range(60):  # 60 seconds max
                         await asyncio.sleep(1)
                         status_resp = await client.get(
                             polling_url,
@@ -114,7 +114,7 @@ class ImageGenerationService:
                                 f" User {user_id}: Still processing... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"User {user_id}: Polling timeout after 120 seconds - API might be overloaded")
+                            f"User {user_id}: Polling timeout after 60 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None
@@ -287,9 +287,9 @@ class ImageGenerationService:
                     polling_url = result.get(
                         "polling_url", f"https://api.bfl.ai/v1/get_result?id={task_id}")
                     logger.info(
-                        f"Polling task {task_id} for {trend_category} (max 120s)...")
+                        f"Polling task {task_id} for {trend_category} (max 60s)...")
                     import asyncio
-                    for attempt in range(120):  # 120 seconds max (increased from 60)
+                    for attempt in range(60):  # 60 seconds max
                         await asyncio.sleep(1)
                         status_resp = await client.get(
                             polling_url,
@@ -311,7 +311,7 @@ class ImageGenerationService:
                                 f"{trend_category}: Still processing... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"{trend_category}: Polling timeout after 120 seconds - API might be overloaded")
+                            f"{trend_category}: Polling timeout after 60 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None
