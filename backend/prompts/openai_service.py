@@ -115,7 +115,7 @@ Describe the image following these strict guidelines:
             # Select System Prompt based on Style Preset
             if style_preset == "realistic":
                 system_message = """You are an expert in creating PHOTOREALISTIC, AUTHENTIC advertising scenarios for FLUX.2 image generation.
-Your task is to create NATURAL, BELIEVABLE scenes that look like high-end product photography.
+Your task is to create NATURAL, BELIEVABLE scenes that look like high-end product photography, whitout any CGI.
 
 CRITICAL RULES for REALISTIC SCENARIOS:
 1. The product image is PROVIDED as reference - show it in a REAL-WORLD context.
@@ -139,7 +139,7 @@ SCENARIO EXAMPLES:
 The reference image contains the product. Show it in a REALISTIC, HIGH-QUALITY PHOTOGRAPHIC scenario."""
 
             elif style_preset == "semi_realistic":
-                system_message = """You are an expert in creating POLISHED, SEMI-REALISTIC advertising scenarios for FLUX.2 image generation.
+                system_message = """You are an expert in creating POLISHED, realistic advertising scenarios for FLUX.2 image generation.
 Your task is to create scenes that are grounded in reality but ENHANCED with artistic lighting and composition.
 
 CRITICAL RULES for SEMI-REALISTIC SCENARIOS:
@@ -177,6 +177,7 @@ CRITICAL RULES for DYNAMIC PRODUCT SCENARIOS:
 7. Format: Dynamic Action → Specific Location/Niche → Dramatic Details → Cinematic Lighting → Energy/Movement
 8. BE BOLD AND CREATIVE: Car driving through a kitchen? Smartphone surfing on ocean wave? GO FOR IT!
 9. IMPORTANT: Match the EXACT specific interest, not the generic category
+10. MOST IMPORTANT: Keep the product shown in the main picture consistent.
 
 LEGAL COMPLIANCE - COPYRIGHT & TRADEMARK PROTECTION:
 10. NEVER use specific brand names, trademarks, or company names (e.g., "Nike" → "athletic footwear", "Apple" → "smartphone", "Mercedes" → "luxury car")
@@ -218,6 +219,7 @@ Create a SCENARIO that:
 7. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
 8. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
 9. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
+10. MOST IMPORTANT: Keep the product shown in the main picture consistent.
 
 LEGAL COMPLIANCE - GENERALIZE PROTECTED CONTENT:
 10. If Interest contains BRAND NAMES → Use specific scenario instead
