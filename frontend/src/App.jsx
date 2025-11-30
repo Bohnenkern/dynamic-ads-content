@@ -3,6 +3,7 @@ import './App.css'
 import TabNavigation from './components/TabNavigation'
 import CampaignTab from './components/tabs/CampaignTab'
 import UserTab from './components/tabs/UserTab'
+import PreviewTab from './components/tabs/PreviewTab'
 import { generateCampaign, getAllUsers } from './services/api'
 
 function App() {
@@ -126,6 +127,8 @@ function App() {
             campaignResult={campaignResult}
           />
         )
+      case 'preview':
+        return <PreviewTab campaignResult={campaignResult} />
       default:
         return (
           <CampaignTab
@@ -145,7 +148,7 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${activeTab === 'preview' ? 'preview-mode' : ''}`}>
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="app-content">
         {renderTabContent()}

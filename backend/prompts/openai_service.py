@@ -22,12 +22,64 @@ class OpenAIService:
             logger.warning(
                 "OPENAI_API_KEY not set - Falling back to rule-based prompts")
 
+    async def analyze_image(self, image_path: str) -> str:
+        """
+        Analyzes the uploaded image using GPT-4o Vision to get a detailed description
+        following specific guidelines for text, placement, style, font size, and color.
+        """
+        if not self.client:
+            return "Product image"
+
+        try:
+            import base64
+            
+            # Determine mime type
+            mime_type = "image/jpeg"
+            if image_path.lower().endswith(".png"):
+                mime_type = "image/png"
+            elif image_path.lower().endswith(".webp"):
+                mime_type = "image/webp"
+            
+            with open(image_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+            system_message = """You are an expert in analyzing product images for advertising.
+Describe the image following these strict guidelines:
+1. Use quotation marks for any visible text: "The text 'OPEN' appears in red neon letters above the door"
+2. Specify placement: Where text appears relative to other elements
+3. Describe style: "elegant serif typography", "bold industrial lettering", "handwritten script"
+4. Font size: "large headline text", "small body copy", "medium subheading"
+5. Color: Use hex codes for brand text if possible, or precise color names: "The logo text 'ACME' in color #FF5733"
+6. Describe the product's key visual characteristics, perspective, and composition.
+"""
+            
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": "Analyze this product image for use in an image generation prompt."},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}}
+                    ]}
+                ],
+                max_tokens=300
+            )
+            
+            analysis = response.choices[0].message.content.strip()
+            logger.info(f"Image Analysis Result: {analysis[:100]}...")
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"Error in OpenAI vision analysis: {str(e)}")
+            return "Product image"
+
     async def optimize_image_prompt(
         self,
         product_description: str,
         user_data: Dict[str, Any],
         matched_interests: List[Dict[str, Any]],
-        base_structured_prompt: Dict[str, Any]
+        base_structured_prompt: Dict[str, Any],
+        image_analysis: Optional[str] = None
     ) -> str:
         """
         Uses OpenAI to refine and optimize the image generation prompt
@@ -38,6 +90,7 @@ class OpenAIService:
             user_data: User demographic and interest data
             matched_interests: List of matched trending interests
             base_structured_prompt: Structured prompt from image_prompt_builder
+            image_analysis: Optional analysis of the input image
 
         Returns:
             Optimized text prompt for FLUX.2 image generation
@@ -51,11 +104,12 @@ class OpenAIService:
             user_age = user_data.get('age', 30)
             user_occupation = user_data['demographics'].get(
                 'occupation', 'Professional')
+            user_language = user_data.get('language', 'de')
             top_interests = [m['interest']
                              for m in matched_interests[:3]] if matched_interests else []
 
             system_message = """You are an expert in crafting prompts for FLUX.2 image generation by Black Forest Labs.
-Your task is to optimize advertising image prompts for image-to-image generation with product reference.
+Your task is to optimize advertising image prompts following the structure: Subject + Action + Style + Context.
 
 CRITICAL RULES for FLUX.2 with Image Reference:
 1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and ATMOSPHERIC BACKGROUND
@@ -72,11 +126,12 @@ Example structure: "Professional studio product photography with [product] as he
 
 The reference image contains the product. Your prompt should describe an ATMOSPHERIC SCENE that evokes the lifestyle theme through environment and mood rather than specific objects."""
 
-            user_message = f"""Optimize this advertising image prompt for FLUX.2 with product image reference:
+            user_message = f"""Optimize this advertising image prompt for FLUX.2:
 
 CONTEXT:
 - Product: {product_description}
 - Target Audience: {user_age} year old {user_occupation}
+- TARGET LANGUAGE: {user_language}
 - Interest Theme: {top_interests[0] if top_interests else 'lifestyle'}
 - Note: Product image is provided as reference
 
@@ -84,12 +139,17 @@ BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
 Create an optimized FLUX.2 prompt that:
+
 1. Focuses on creating an ATMOSPHERIC ENVIRONMENT that reflects the interest theme
 2. Translates the interest into abstract mood, lighting, and environmental qualities
 3. Creates a fuller background with depth, texture, and spatial context
 4. Uses professional product photography terminology
 5. Describes lighting, atmosphere, and emotional tone
 6. Evokes the lifestyle theme through environment rather than literal objects
+7. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+8. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
+9. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
+10. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
 REMEMBER: 
 - Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT

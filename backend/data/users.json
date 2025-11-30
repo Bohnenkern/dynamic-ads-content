@@ -3,6 +3,7 @@
     "id": 1,
     "name": "User 1",
     "age": 28,
+    "language": "de",
     "location": "Berlin",
     "interests": [
       "Machine Learning",
@@ -34,6 +35,7 @@
     "id": 2,
     "name": "User 2",
     "age": 35,
+    "language": "de",
     "location": "Munich",
     "interests": [
       "Football",
@@ -64,6 +66,7 @@
     "id": 3,
     "name": "User 3",
     "age": 24,
+    "language": "en",
     "location": "Hamburg",
     "interests": [
       "Beach Holidays",
@@ -94,6 +97,7 @@
     "id": 4,
     "name": "User 4",
     "age": 42,
+    "language": "fr",
     "location": "Frankfurt",
     "interests": [
       "Live Music",
@@ -125,6 +129,7 @@
     "id": 5,
     "name": "User 5",
     "age": 31,
+    "language": "es",
     "location": "Cologne",
     "interests": [
       "Mobile Gaming",

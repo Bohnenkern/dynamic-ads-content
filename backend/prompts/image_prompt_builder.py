@@ -105,6 +105,7 @@ class ImagePromptBuilder:
         user_occupation = user_data['demographics'].get(
             'occupation', 'Professional')
         user_location = user_data.get('location', 'City')
+        user_language = user_data.get('language')
 
         # Get top 3 trending interests
         top_interests = [m['interest']
@@ -132,7 +133,8 @@ class ImagePromptBuilder:
                 "target_audience": f"{user_age} year old {user_occupation} from {user_location}",
                 "trending_interests": top_interests,
                 "trend_categories": trend_categories,
-                "lifestyle_integration": self._generate_lifestyle_context(matched_interests, user_data)
+                "lifestyle_integration": self._generate_lifestyle_context(matched_interests, user_data),
+                "language_instruction": f"If the uploaded image contains any text or should include any, it should be translated/added in {user_language}"
             },
             "style": f"{style}, ultra-realistic advertising photography with commercial quality",
             "color_palette": color_palette,
