@@ -212,12 +212,12 @@ async def generate_campaign(
     """
 
     logger.info("=" * 70)
-    logger.info("🚀 CAMPAIGN GENERATION STARTED")
+    logger.info("CAMPAIGN GENERATION STARTED")
     logger.info("=" * 70)
-    logger.info(f"📱 Product: {product_description}")
-    logger.info(f"🎯 Theme: {campaign_theme}")
+    logger.info(f"Product: {product_description}")
+    logger.info(f"Theme: {campaign_theme}")
     logger.info(
-        f"🖼️  Image: {product_image.filename} ({product_image.content_type})")
+        f"Image: {product_image.filename} ({product_image.content_type})")
     logger.info("=" * 70)
 
     # STEP 1: Save uploaded product image and convert to base64 for Black Forest API
@@ -227,12 +227,12 @@ async def generate_campaign(
         import io
 
         image_path = await save_uploaded_image(product_image)
-        logger.info(f"✅ Step 1 Complete: Image saved to {image_path}")
+        logger.info(f" Step 1 Complete: Image saved to {image_path}")
 
         # Analyze image with OpenAI Vision
-        logger.info("🔍 Analyzing image with OpenAI Vision...")
+        logger.info(" Analyzing image with OpenAI Vision...")
         image_analysis = await openai_service.analyze_image(image_path)
-        logger.info("✅ Image analysis complete")
+        logger.info(" Image analysis complete")
 
         # Convert image to JPEG format (Black Forest API requirement)
         # Open image and convert to RGB (removes alpha channel if present)
@@ -258,54 +258,54 @@ async def generate_campaign(
         image_base64_uri = f"data:image/jpeg;base64,{image_data}"
 
         logger.info(
-            f"✅ Step 1b: Image converted to JPEG and base64 ({len(image_data)} chars)")
+            f"Step 1b: Image converted to JPEG and base64 ({len(image_data)} chars)")
     except Exception as e:
-        logger.error(f"❌ Step 1 Failed: {str(e)}")
+        logger.error(f"Step 1 Failed: {str(e)}")
         raise
 
     # STEP 2: Get hardcoded trends
     trends_data = trend_service.get_cached_trends()
     if "message" in trends_data or "error" in trends_data:
-        logger.error("❌ Step 2 Failed: No trend data available")
+        logger.error("Step 2 Failed: No trend data available")
         raise HTTPException(status_code=404, detail="No trend data available")
 
     trends = trends_data.get("trends", [])
     if not trends:
-        logger.error("❌ Step 2 Failed: No trends found")
+        logger.error("Step 2 Failed: No trends found")
         raise HTTPException(status_code=404, detail="No trends found")
 
-    logger.info(f"✅ Step 2 Complete: Loaded {len(trends)} hardcoded trends")
+    logger.info(f"Step 2 Complete: Loaded {len(trends)} hardcoded trends")
     for trend in trends:
         logger.info(
-            f"   📊 {trend['category']}: {', '.join(trend['interests'][:3])}...")
+            f"    {trend['category']}: {', '.join(trend['interests'][:3])}...")
 
     # STEP 3: Filter trends with OpenAI (LLM-based safety check)
     if ENABLE_TREND_FILTERING:
         logger.info(
-            f"🔍 Step 3: Filtering trends with OpenAI for campaign suitability...")
+            f" Step 3: Filtering trends with OpenAI for campaign suitability...")
         filtered_trends = await trend_filter_service.filter_trends_for_campaign(
             trends=trends,
             campaign_theme=campaign_theme,
         )
 
         if not filtered_trends:
-            logger.error("❌ Step 3 Failed: No suitable trends after filtering")
+            logger.error(" Step 3 Failed: No suitable trends after filtering")
             raise HTTPException(
                 status_code=400,
                 detail="No suitable trends found after filtering for campaign safety"
             )
 
         logger.info(
-            f"✅ Step 3 Complete: {len(trends)} → {len(filtered_trends)} suitable trends")
+            f" Step 3 Complete: {len(trends)} → {len(filtered_trends)} suitable trends")
         for trend in filtered_trends:
             logger.info(f"   ✓ Kept: {trend['category']}")
     else:
         logger.info(
-            f"⏭️  Step 3 Skipped: Trend filtering disabled (ENABLE_TREND_FILTERING=False)")
+            f"⏭  Step 3 Skipped: Trend filtering disabled (ENABLE_TREND_FILTERING=False)")
         filtered_trends = trends
 
     # STEP 4: Match filtered trends with users
-    logger.info(f"🎯 Step 4: Matching filtered trends with 5 users...")
+    logger.info(f" Step 4: Matching filtered trends with 5 users...")
 
     # Temporarily update trend service cache with filtered trends
     original_trends = trends_data.copy()
@@ -321,12 +321,12 @@ async def generate_campaign(
     trend_service.trends_data = original_trends
 
     if not match_results:
-        logger.error("❌ Step 4 Failed: No users found for matching")
+        logger.error(" Step 4 Failed: No users found for matching")
         raise HTTPException(
             status_code=404, detail="No users found for matching")
 
     logger.info(
-        f"✅ Step 4 Complete: Matched trends with {len(match_results)} users")
+        f" Step 4 Complete: Matched trends with {len(match_results)} users")
     for match in match_results:
         logger.info(
             f"   👤 {match['user_name']}: {match['match_count']} matches")
@@ -351,7 +351,7 @@ async def generate_campaign(
                 user_matches[user_id] = match_result
 
     logger.info(
-        f"✅ Step 5 Complete: Built {len(structured_prompts)} structured prompts")
+        f" Step 5 Complete: Built {len(structured_prompts)} structured prompts")
 
     # Initialize API call counter
     api_calls = {
@@ -389,8 +389,8 @@ async def generate_campaign(
     selected_trends = filtered_trends_sorted[:MAX_TRENDS_FOR_OPTIMIZATION]
 
     logger.info(
-        f"🏗️  Step 6: Building prompts for TOP {len(selected_trends)} trend categories (limited to {MAX_TRENDS_FOR_OPTIMIZATION})...")
-    logger.info("   🎯 Selected trends based on user matches + popularity:")
+        f"  Step 6: Building prompts for TOP {len(selected_trends)} trend categories (limited to {MAX_TRENDS_FOR_OPTIMIZATION})...")
+    logger.info("    Selected trends based on user matches + popularity:")
     for trend in selected_trends:
         user_count = trend_user_counts.get(trend["category"], 0)
         logger.info(f"      • {trend['category']}: {user_count} users matched")
@@ -428,7 +428,7 @@ async def generate_campaign(
 
     # Parallelize OpenAI prompt optimization for all trends
     logger.info(
-        f"   🔄 Optimizing {len(trend_data_for_optimization)} prompts in parallel with GPT-4o...")
+        f"    Optimizing {len(trend_data_for_optimization)} prompts in parallel with GPT-4o...")
     optimization_tasks = []
     for data in trend_data_for_optimization:
         task = openai_service.optimize_image_prompt(
@@ -460,9 +460,9 @@ async def generate_campaign(
         api_calls["openai_gpt4o"] += 1  # Count GPT-4o optimization call
 
     logger.info(
-        f"✅ Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts (optimized in parallel)")
+        f" Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts (optimized in parallel)")
     logger.info(
-        f"   📊 API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
+        f"    API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
 
     # STEP 7: Generate images ONLY for selected trends (MAX 5) with Black Forest API
     # Further limit to MAX_IMAGES_PER_CAMPAIGN to protect API key
@@ -471,14 +471,14 @@ async def generate_campaign(
         list(trend_prompts.items())[:images_to_generate])
 
     logger.info(
-        f"🎨 Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
+        f" Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
     logger.info(
-        f"   📸 Using FLUX.2 Image Editing with product image as input_image")
+        f"    Using FLUX.2 Image Editing with product image as input_image")
     logger.info(
-        f"   ⚡ PARALLEL EXECUTION: All {images_to_generate} images will be generated simultaneously")
+        f"    PARALLEL EXECUTION: All {images_to_generate} images will be generated simultaneously")
     if len(trend_prompts) > MAX_IMAGES_PER_CAMPAIGN:
         logger.warning(
-            f"   ⚠️  Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
+            f"     Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
 
     # Pass the product image to Black Forest FLUX.2 API (image editing mode)
     # PARALLELIZED: All image generations run concurrently
@@ -497,12 +497,12 @@ async def generate_campaign(
         image_service.cache_trend_image(trend_category, image_data)
 
     logger.info(
-        f"✅ Step 7 Complete: Generated {len(trend_images)} trend images in parallel (much faster!)")
+        f" Step 7 Complete: Generated {len(trend_images)} trend images in parallel (much faster!)")
     logger.info(
-        f"   🖼️  Black Forest API calls: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
+        f"     Black Forest API calls: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
 
     # STEP 8: Map generated images to users based on their matched interests
-    logger.info(f"🔗 Step 8: Mapping trend images to users...")
+    logger.info(f" Step 8: Mapping trend images to users...")
     campaign_results = []
     for match_result in match_results:
         user_id = match_result["user_id"]
@@ -539,10 +539,10 @@ async def generate_campaign(
         campaign_results.append(result)
 
     logger.info(
-        f"✅ Step 8 Complete: Mapped images to {len(campaign_results)} users")
+        f" Step 8 Complete: Mapped images to {len(campaign_results)} users")
 
     # STEP 9: Generate Preview Formats for a random user
-    logger.info("🎨 Step 9: Generating Preview Formats for a random user...")
+    logger.info(" Step 9: Generating Preview Formats for a random user...")
     preview_formats = {}
     if match_results:
         import random
@@ -598,12 +598,12 @@ async def generate_campaign(
                 "vertical": preview_results[1],
                 "rectangular": preview_results[2]
             }
-            logger.info(f"✅ Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
+            logger.info(f" Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
 
     logger.info("=" * 70)
-    logger.info("🎉 CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
+    logger.info(" CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
     logger.info("=" * 70)
-    logger.info("📊 API USAGE STATISTICS:")
+    logger.info(" API USAGE STATISTICS:")
     logger.info(
         f"   • OpenAI GPT-4o-mini calls: {api_calls['openai_gpt4o_mini']}")
     logger.info(f"   • OpenAI GPT-4o calls: {api_calls['openai_gpt4o']}")

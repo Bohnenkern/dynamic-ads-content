@@ -102,19 +102,19 @@ class ImageGenerationService:
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"✅ User {user_id}: Image ready after {attempt + 1} seconds")
+                                f"User {user_id}: Image ready after {attempt + 1} seconds")
                             break
                         elif status.get("status") in ["Error", "Failed"]:
                             logger.error(
-                                f"❌ User {user_id}: Generation failed - {status}")
+                                f"User {user_id}: Generation failed - {status}")
                             break
                         # Log progress every 20 seconds
                         elif (attempt + 1) % 20 == 0:
                             logger.info(
-                                f"⏳ User {user_id}: Still processing... ({attempt + 1}s elapsed)")
+                                f" User {user_id}: Still processing... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"⚠️ User {user_id}: Polling timeout after 120 seconds - API might be overloaded")
+                            f"User {user_id}: Polling timeout after 120 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None
@@ -299,19 +299,19 @@ class ImageGenerationService:
                         if status.get("status") == "Ready":
                             image_url = status.get("result", {}).get("sample")
                             logger.info(
-                                f"✅ {trend_category}: Image ready after {attempt + 1} seconds")
+                                f"{trend_category}: Image ready after {attempt + 1} seconds")
                             break
                         elif status.get("status") in ["Error", "Failed"]:
                             logger.error(
-                                f"❌ {trend_category}: Generation failed - {status}")
+                                f" {trend_category}: Generation failed - {status}")
                             break
                         # Log progress every 20 seconds
                         elif (attempt + 1) % 20 == 0:
                             logger.info(
-                                f"⏳ {trend_category}: Still processing... ({attempt + 1}s elapsed)")
+                                f"{trend_category}: Still processing... ({attempt + 1}s elapsed)")
                     else:
                         logger.warning(
-                            f"⚠️ {trend_category}: Polling timeout after 120 seconds - API might be overloaded")
+                            f"{trend_category}: Polling timeout after 120 seconds - API might be overloaded")
                         image_url = None
                 else:
                     image_url = None
