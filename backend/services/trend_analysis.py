@@ -1,6 +1,8 @@
 from typing import List, Dict, Any
 from datetime import datetime
 import logging
+import json
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -11,56 +13,45 @@ class TrendAnalysisService:
     def __init__(self):
         self.trends_data: Dict[str, Any] = {}
         self.last_update: datetime | None = None
+        self.trends_file = Path(__file__).parent.parent / \
+            "data" / "trends.json"
+
+    def _load_trends_from_file(self) -> Dict[str, Any]:
+        """Lädt Trend-Daten aus der trends.json Datei"""
+        try:
+            with open(self.trends_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            return {
+                "trends": data.get("trends", []),
+                "timestamp": datetime.now().isoformat(),
+                "total_categories": data.get("metadata", {}).get("total_categories", 0),
+                "total_interests": data.get("metadata", {}).get("total_interests", 0)
+            }
+        except FileNotFoundError:
+            logger.error(f"Trends file not found: {self.trends_file}")
+            return {"error": "Trends file not found"}
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing trends.json: {str(e)}")
+            return {"error": "Invalid JSON format"}
 
     async def fetch_user_interests(self) -> Dict[str, Any]:
         """
-        Holt aktuelle Interessen und Hobbies von Personen über externe API.
-        TODO: Externe API-Integration implementieren
+        Lädt Trend-Daten aus der trends.json Datei.
+        TODO: Später kann hier auch eine externe API-Integration erfolgen
         """
         try:
-            # PLATZHALTER: Hier wird später die externe API aufgerufen
-            # response = await external_api_client.get_user_interests()
+            trends_data = self._load_trends_from_file()
 
-            # Temporäre Mock-Daten für Entwicklung
-            # Optimiert für garantierte Matches mit users.json
-            mock_data = {
-                "trends": [
-                    {
-                        "category": "Sports",
-                        "interests": ["Football", "Basketball", "Running", "Fitness"],
-                        "popularity_score": 85
-                    },
-                    {
-                        "category": "Technology",
-                        "interests": ["AI", "Smartphones", "Gaming", "Photography", "Tech Blogging"],
-                        "popularity_score": 92
-                    },
-                    {
-                        "category": "Travel",
-                        "interests": ["Beach Holidays", "City Trips", "Adventure", "Travel Planning"],
-                        "popularity_score": 78
-                    },
-                    {
-                        "category": "Food",
-                        "interests": ["Healthy Eating", "Fine Dining", "Cooking", "Wine Tasting", "Meal Prep"],
-                        "popularity_score": 88
-                    },
-                    {
-                        "category": "Entertainment",
-                        "interests": ["Movies", "Music", "Concerts", "Streaming", "Playing Guitar"],
-                        "popularity_score": 81
-                    }
-                ],
-                "timestamp": datetime.now().isoformat(),
-                "total_users_analyzed": 10000
-            }
+            if "error" in trends_data:
+                return trends_data
 
-            self.trends_data = mock_data
+            self.trends_data = trends_data
             self.last_update = datetime.now()
 
             logger.info(
-                f"Trendanalyse erfolgreich aktualisiert: {len(mock_data['trends'])} Kategorien")
-            return mock_data
+                f"Trendanalyse erfolgreich aktualisiert: {len(trends_data.get('trends', []))} Kategorien")
+            return trends_data
 
         except Exception as e:
             logger.error(f"Fehler beim Abrufen der Trendanalyse: {str(e)}")

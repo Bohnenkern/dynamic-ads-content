@@ -18,6 +18,10 @@ from prompts.image_generation import image_service
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# API Call Limits to prevent overuse
+MAX_IMAGES_PER_CAMPAIGN = 5  # Black Forest API limit
+MAX_TRENDS_FOR_OPTIMIZATION = 5  # OpenAI GPT-4o limit
+
 
 class CampaignRequest(BaseModel):
     """Request model for campaign generation (deprecated - use FormData)"""
@@ -279,7 +283,7 @@ async def generate_campaign(
         "total_users_analyzed": trends_data.get("total_users_analyzed")
     }
 
-    match_results = trend_matcher.match_all_users()
+    match_results = await trend_matcher.match_all_users()
 
     # Restore original trends
     trend_service.trends_data = original_trends
@@ -317,11 +321,50 @@ async def generate_campaign(
     logger.info(
         f"✅ Step 5 Complete: Built {len(structured_prompts)} structured prompts")
 
-    # STEP 6: Build prompts for each filtered trend category
+    # Initialize API call counter
+    api_calls = {
+        "openai_gpt4o_mini": 0,
+        "openai_gpt4o": 0,
+        "black_forest": 0
+    }
+
+    # Count API calls from previous steps
+    api_calls["openai_gpt4o_mini"] += 1  # Step 3: Trend filtering
+    # Step 4: Interest matching (1 per user)
+    api_calls["openai_gpt4o_mini"] += len(match_results)
+
+    # STEP 6: Build prompts for TOP trend categories (limited to prevent API overuse)
+    # Select top trends based on:
+    # 1. How many users matched this trend
+    # 2. Popularity score
+    trend_user_counts = {}
+    for match_result in match_results:
+        for interest in match_result.get("matched_interests", []):
+            category = interest.get("category")
+            if category:
+                trend_user_counts[category] = trend_user_counts.get(
+                    category, 0) + 1
+
+    # Sort filtered trends by user match count + popularity
+    filtered_trends_sorted = sorted(
+        filtered_trends,
+        key=lambda t: (trend_user_counts.get(
+            t["category"], 0), t.get("popularity_score", 0)),
+        reverse=True
+    )
+
+    # Limit to MAX_TRENDS_FOR_OPTIMIZATION (5 trends max)
+    selected_trends = filtered_trends_sorted[:MAX_TRENDS_FOR_OPTIMIZATION]
+
     logger.info(
-        f"🏗️  Step 6: Building prompts for {len(filtered_trends)} trend categories...")
+        f"🏗️  Step 6: Building prompts for TOP {len(selected_trends)} trend categories (limited to {MAX_TRENDS_FOR_OPTIMIZATION})...")
+    logger.info("   🎯 Selected trends based on user matches + popularity:")
+    for trend in selected_trends:
+        user_count = trend_user_counts.get(trend["category"], 0)
+        logger.info(f"      • {trend['category']}: {user_count} users matched")
+
     trend_prompts = {}
-    for trend in filtered_trends:
+    for trend in selected_trends:
         trend_category = trend["category"]
         trend_interests = trend["interests"]
 
@@ -341,23 +384,40 @@ async def generate_campaign(
         )
 
         trend_prompts[trend_category] = optimized_prompt
+        api_calls["openai_gpt4o"] += 1  # Count GPT-4o optimization call
 
     logger.info(
         f"✅ Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts")
-
-    # STEP 7: Generate images for each trend with Black Forest API
     logger.info(
-        f"🎨 Step 7: Generating images for {len(trend_prompts)} trends with Black Forest API...")
+        f"   📊 API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
+
+    # STEP 7: Generate images ONLY for selected trends (MAX 5) with Black Forest API
+    # Further limit to MAX_IMAGES_PER_CAMPAIGN to protect API key
+    images_to_generate = min(len(trend_prompts), MAX_IMAGES_PER_CAMPAIGN)
+    limited_trend_prompts = dict(
+        list(trend_prompts.items())[:images_to_generate])
+
+    logger.info(
+        f"🎨 Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
+    if len(trend_prompts) > MAX_IMAGES_PER_CAMPAIGN:
+        logger.warning(
+            f"   ⚠️  Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
+
     trend_images = await image_service.generate_images_for_trends(
-        trend_prompts=trend_prompts,
+        trend_prompts=limited_trend_prompts,
         product_name=product_description.split()[0]
     )
+
+    # Count actual images generated
+    api_calls["black_forest"] = len(trend_images)
 
     for trend_category, image_data in trend_images.items():
         image_service.cache_trend_image(trend_category, image_data)
 
     logger.info(
         f"✅ Step 7 Complete: Generated {len(trend_images)} trend images")
+    logger.info(
+        f"   🖼️  Black Forest API calls: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
 
     # STEP 8: Map generated images to users based on their matched interests
     logger.info(f"🔗 Step 8: Mapping trend images to users...")
@@ -401,6 +461,15 @@ async def generate_campaign(
     logger.info("=" * 70)
     logger.info("🎉 CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
     logger.info("=" * 70)
+    logger.info("📊 API USAGE STATISTICS:")
+    logger.info(
+        f"   • OpenAI GPT-4o-mini calls: {api_calls['openai_gpt4o_mini']}")
+    logger.info(f"   • OpenAI GPT-4o calls: {api_calls['openai_gpt4o']}")
+    logger.info(
+        f"   • Black Forest image generations: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
+    logger.info(
+        f"   • Total OpenAI API calls: {api_calls['openai_gpt4o_mini'] + api_calls['openai_gpt4o']}")
+    logger.info("=" * 70)
 
     total_images_generated = sum([result["images_count"]
                                  for result in campaign_results])
@@ -411,10 +480,19 @@ async def generate_campaign(
         "product_image_path": image_path,
         "total_trends_analyzed": len(trends),
         "filtered_trends_count": len(filtered_trends),
-        "filtered_trends": [{"category": t["category"], "interests": t["interests"]} for t in filtered_trends],
+        "selected_trends_count": len(selected_trends),
+        "selected_trends": [{"category": t["category"], "interests": t["interests"], "user_matches": trend_user_counts.get(t["category"], 0)} for t in selected_trends],
         "trend_images_generated": len(trend_images),
         "users_targeted": len(campaign_results),
         "total_user_images_mapped": total_images_generated,
+        "api_usage": {
+            "openai_gpt4o_mini_calls": api_calls["openai_gpt4o_mini"],
+            "openai_gpt4o_calls": api_calls["openai_gpt4o"],
+            "black_forest_calls": api_calls["black_forest"],
+            "total_openai_calls": api_calls["openai_gpt4o_mini"] + api_calls["openai_gpt4o"],
+            "image_limit": MAX_IMAGES_PER_CAMPAIGN,
+            "optimization_limit": MAX_TRENDS_FOR_OPTIMIZATION
+        },
         "results": campaign_results
     }
 
