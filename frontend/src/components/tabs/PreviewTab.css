@@ -1,31 +1,39 @@
 .preview-tab {
-  /* background-color: #333;  Removed to let App.css handle background */
   color: #fff;
-  padding: 20px;
+  padding: 2rem;
   min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-main);
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preview-header {
   width: 100%;
   max-width: 1200px;
-  margin-bottom: 60px; /* Increased spacing */
+  margin-bottom: 4rem;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2rem;
 }
 
 .preview-banner-container {
   width: 100%;
   aspect-ratio: 4/1;
-  background-color: #444;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 24px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: var(--glass-shadow);
+  border: var(--glass-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.preview-banner-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-primary);
 }
 
 .preview-banner-img {
@@ -38,7 +46,7 @@
   display: flex;
   width: 100%;
   max-width: 1200px;
-  gap: 60px; /* Increased spacing */
+  gap: 4rem;
   justify-content: space-between;
 }
 
@@ -46,23 +54,31 @@
   flex: 2;
   display: flex;
   flex-direction: column;
-  gap: 40px; /* Increased spacing */
+  gap: 3rem;
 }
 
 .preview-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 40px; /* Increased spacing */
+  gap: 3rem;
 }
 
 .preview-rect-container {
   width: 100%;
   aspect-ratio: 1/1;
-  background-color: #444;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: var(--glass-shadow);
+  border: var(--glass-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.preview-rect-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-primary);
 }
 
 .preview-rect-img {
@@ -74,10 +90,18 @@
 .preview-vertical-container {
   width: 100%;
   aspect-ratio: 1/2;
-  background-color: #444;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: var(--glass-shadow);
+  border: var(--glass-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.preview-vertical-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-primary);
 }
 
 .preview-vertical-img {
@@ -90,43 +114,53 @@
 .cartoon-text-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  opacity: 0.6;
+  gap: 12px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .cartoon-line {
-  height: 12px;
-  background-color: #666; /* Slightly lighter for better visibility on dark bg */
-  border-radius: 6px;
-  /* Width is now handled via inline styles for randomness */
+  height: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 7px;
+  animation: pulse 2s infinite ease-in-out;
 }
 
-/* Removed fixed width classes (.short, .medium, .long) in favor of dynamic inline styles */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
 
 .preview-controls {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .generate-btn {
-  background-color: #646cff;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 1rem 2rem;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-.generate-btn:hover {
-  background-color: #535bf2;
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 
 .generate-btn:disabled {
-  background-color: #888;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .loading-overlay {
@@ -135,11 +169,29 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   color: white;
-  font-size: 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .preview-content {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .preview-left, .preview-right {
+    width: 100%;
+  }
 }
