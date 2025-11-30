@@ -60,7 +60,7 @@ const UserTab = ({ user, userResult, campaignResult }) => {
           <div className="user-details">
             <h2>{user?.name || 'Unknown User'}</h2>
             <p className="user-meta">
-              {getAgeGroup(user?.age)} • {user?.location}
+              {user?.demographics?.occupation || 'Professional'}
             </p>
           </div>
         </div>
