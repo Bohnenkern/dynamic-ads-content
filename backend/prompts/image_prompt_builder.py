@@ -55,7 +55,7 @@ class ImagePromptBuilder:
             "context": {
                 "trend_category": trend_category,
                 "primary_interest": trend_interests[0] if trend_interests else trend_category,
-                "lifestyle_theme": f"Integrate {trend_interests[0] if trend_interests else trend_category} element subtly and minimally in background"
+                "lifestyle_theme": f"Create atmospheric environment inspired by {trend_interests[0] if trend_interests else trend_category} lifestyle with immersive background depth and thematic mood"
             },
             "style": "Ultra-realistic product photography with commercial quality",
             "color_palette": color_palette,
@@ -277,70 +277,69 @@ class ImagePromptBuilder:
         return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
 
     def _generate_lifestyle_elements_for_trend(self, category: str, interests: List[str]) -> str:
-        """Generates ONE SPECIFIC lifestyle element for background - clean and focused, not overloaded"""
-        # Select only the FIRST (most relevant) interest to keep image clean
+        """Generates atmospheric lifestyle environment based on interest theme - abstract and immersive"""
+        # Select the FIRST interest and translate to atmospheric description
         if interests:
             interest = interests[0]
             interest_lower = interest.lower()
 
-            # Map specific interest to ONE concrete visual prop (not multiple items)
+            # Map interests to ATMOSPHERIC ENVIRONMENTS rather than single objects
             if "machine learning" in interest_lower or "deep learning" in interest_lower:
-                return "laptop with Python code visible in soft focus background"
+                return "modern tech workspace atmosphere with subtle digital elements and clean minimalist aesthetic in background"
             elif "chatgpt" in interest_lower or "ai" in interest_lower:
-                return "laptop with AI interface visible in soft focus background"
+                return "contemporary digital workspace environment with soft ambient glow and technological aesthetic"
             elif "trail running" in interest_lower:
-                return "trail running shoes on wooden surface in background"
+                return "natural outdoor environment with organic textures and athletic energy in the atmospheric background"
             elif "marathon" in interest_lower or "running" in interest_lower:
-                return "running shoes and finisher medal in soft focus background"
+                return "active lifestyle setting with dynamic energy and achievement-oriented atmosphere"
             elif "pc gaming" in interest_lower:
-                return "gaming keyboard with RGB lighting in background"
+                return "immersive gaming setup environment with ambient lighting and entertainment-focused atmosphere"
             elif "mobile gaming" in interest_lower:
-                return "smartphone with game screen in background"
+                return "casual entertainment space with modern digital lifestyle aesthetic"
             elif "rpg games" in interest_lower or "indie games" in interest_lower:
-                return "game controller in soft focus background"
+                return "creative gaming atmosphere with artistic and immersive environmental qualities"
             elif "portrait photography" in interest_lower or "street photography" in interest_lower:
-                return "DSLR camera in background"
+                return "artistic creative workspace with visual storytelling atmosphere and professional aesthetic"
             elif "photo editing" in interest_lower:
-                return "laptop with photo editing software in background"
+                return "digital creative studio environment with focused artistic workflow atmosphere"
             elif "vegan cooking" in interest_lower:
-                return "fresh vegetables and vegan cookbook in background"
+                return "natural wholesome kitchen atmosphere with organic textures and fresh healthy lifestyle aesthetic"
             elif "meal prep" in interest_lower:
-                return "glass meal prep containers in background"
+                return "organized culinary workspace with efficient lifestyle atmosphere and clean aesthetic"
             elif "cooking" in interest_lower or "international cuisine" in interest_lower:
-                return "cookbook and fresh herbs in background"
+                return "gourmet kitchen environment with culinary passion and sophisticated food culture atmosphere"
             elif "live music" in interest_lower or "indie music" in interest_lower:
-                return "concert ticket and headphones in background"
+                return "artistic musical atmosphere with creative energy and cultural lifestyle aesthetic"
             elif "guitar" in interest_lower or "playing guitar" in interest_lower:
-                return "acoustic guitar in soft focus background"
+                return "musical creative space with artistic expression and melodic atmosphere"
             elif "beach holidays" in interest_lower or "island hopping" in interest_lower:
-                return "passport and sunglasses in background"
+                return "relaxed travel lifestyle atmosphere with wanderlust aesthetic and vacation vibes"
             elif "travel photography" in interest_lower:
-                return "camera and world map in background"
+                return "adventurous explorer environment with worldly atmosphere and discovery aesthetic"
             elif "wine tasting" in interest_lower or "wine pairing" in interest_lower:
-                return "wine glass on wooden surface in background"
+                return "sophisticated sommelier atmosphere with refined taste and elegant lifestyle aesthetic"
             elif "fine dining" in interest_lower or "restaurant reviews" in interest_lower:
-                return "elegant plate setting in background"
+                return "upscale culinary setting with gourmet atmosphere and refined dining aesthetic"
             elif "crossfit" in interest_lower:
-                return "kettlebell in soft focus background"
+                return "intense athletic training environment with performance-focused atmosphere and fitness dedication"
             elif "fitness training" in interest_lower:
-                return "fitness tracker and water bottle in background"
+                return "active wellness lifestyle setting with health-conscious atmosphere and motivational energy"
             elif "netflix binging" in interest_lower or "streaming" in interest_lower:
-                return "remote control on cozy blanket in background"
+                return "cozy entertainment space with relaxed viewing atmosphere and comfortable lifestyle aesthetic"
             elif "basketball" in interest_lower:
-                return "basketball in soft focus background"
+                return "dynamic sports environment with athletic energy and competitive spirit atmosphere"
             elif "football" in interest_lower or "playing football" in interest_lower:
-                return "football in background"
+                return "energetic sports setting with team spirit and athletic lifestyle atmosphere"
             elif "strategy games" in interest_lower:
-                return "gaming mouse on desk in background"
+                return "focused gaming workspace with tactical thinking atmosphere and competitive aesthetic"
             elif "5g technology" in interest_lower or "wearable tech" in interest_lower:
-                return "smartwatch on surface in background"
+                return "cutting-edge tech lifestyle environment with innovative atmosphere and futuristic aesthetic"
             elif "smart home" in interest_lower:
-                return "smart speaker in background"
+                return "intelligent connected living space with automated lifestyle atmosphere and modern convenience"
             else:
-                # Use simple, single prop based on interest name
-                return f"{interest} item subtly placed in soft focus background"
-
-        # Fallback to category-based
+                # Abstract interpretation of any interest
+                # Fallback to category-based
+                return f"{interest} inspired lifestyle environment with thematic atmosphere and cultural aesthetic"
         elements_map = {
             "Technology": "laptop and smartphone in soft focus background",
             "Sports": "sports equipment in background",

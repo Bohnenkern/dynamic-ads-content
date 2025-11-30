@@ -58,44 +58,46 @@ class OpenAIService:
 Your task is to optimize advertising image prompts for image-to-image generation with product reference.
 
 CRITICAL RULES for FLUX.2 with Image Reference:
-1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and BACKGROUND
-2. Describe how to integrate the product into trending lifestyle scenes
-3. Keep prompts 50-100 words (concise but descriptive)
+1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and ATMOSPHERIC BACKGROUND
+2. Create an immersive lifestyle environment that reflects the user interest theme
+3. Keep prompts 75-125 words allowing more creative detail
 4. Use professional product photography terminology
-5. Use ONLY ONE SPECIFIC lifestyle element - keep it minimal and focused (e.g., "laptop with code editor" OR "running shoes" OR "vegan cookbook" - NOT multiple items)
-6. Be SPECIFIC - use the actual interest name provided (e.g., "Machine Learning textbook" not "tech books")
-7. Format: Scene Setup → ONE Specific Element → Lighting → Mood → Composition
+5. Translate user interests into ABSTRACT ATMOSPHERE and MOOD rather than literal objects
+6. Create fuller backgrounds with depth, texture, and environmental context
+7. Format: Scene Setup with Atmosphere → Environmental Details → Lighting → Mood → Composition
 8. Avoid describing the product itself - it's already in the reference image
-9. IMPORTANT: Keep background CLEAN and MINIMAL - only ONE lifestyle prop to avoid cluttered images
+9. IMPORTANT: Create rich, immersive backgrounds that evoke the lifestyle theme without being literal
 
-Example structure: "Professional studio product photography with [product] as hero product, [ONE specific item: e.g., MacBook with Python code OR running medal OR coffee beans] subtly placed in soft focus, [lighting style], [mood], [composition]"
+Example structure: "Professional studio product photography with [product] as hero product, set in [atmospheric description of environment related to interest theme], [environmental textures and depth], [lighting style creating specific mood], [emotional atmosphere], [composition]"
 
-The reference image contains the product. Your prompt should describe a CLEAN SCENE with ONE SPECIFIC lifestyle element."""
+The reference image contains the product. Your prompt should describe an ATMOSPHERIC SCENE that evokes the lifestyle theme through environment and mood rather than specific objects."""
 
             user_message = f"""Optimize this advertising image prompt for FLUX.2 with product image reference:
 
 CONTEXT:
 - Product: {product_description}
 - Target Audience: {user_age} year old {user_occupation}
-- Primary Interest: {top_interests[0] if top_interests else 'lifestyle'}
+- Interest Theme: {top_interests[0] if top_interests else 'lifestyle'}
 - Note: Product image is provided as reference
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
 Create an optimized FLUX.2 prompt that:
-1. Focuses on SCENE COMPOSITION around the product (already in reference image)
-2. Integrates ONLY ONE lifestyle element related to the primary interest - keep it MINIMAL
-3. Uses professional product photography terminology
-4. Describes lighting, mood, and composition
-5. Keeps background CLEAN and NOT OVERLOADED
+1. Focuses on creating an ATMOSPHERIC ENVIRONMENT that reflects the interest theme
+2. Translates the interest into abstract mood, lighting, and environmental qualities
+3. Creates a fuller background with depth, texture, and spatial context
+4. Uses professional product photography terminology
+5. Describes lighting, atmosphere, and emotional tone
+6. Evokes the lifestyle theme through environment rather than literal objects
 
 REMEMBER: 
-- Don't describe the product itself - describe the SCENE, BACKGROUND, LIGHTING, and MOOD
-- Use ONLY ONE lifestyle prop in background - avoid cluttered compositions
-- Keep it SIMPLE and FOCUSED on the product
+- Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT
+- Create rich backgrounds with depth and texture
+- Interpret interests abstractly - focus on mood and atmosphere
+- Give the AI creative freedom to interpret the theme
 
-OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
+OUTPUT: Only the final optimized prompt text (75-125 words), no explanations or markdown."""
 
             response = await self.client.chat.completions.create(
                 model="gpt-4o",  # Better for creative optimization

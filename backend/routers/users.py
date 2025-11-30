@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 MAX_IMAGES_PER_CAMPAIGN = 5  # Black Forest API limit
 MAX_TRENDS_FOR_OPTIMIZATION = 5  # OpenAI GPT-4o limit
 
+# boolean for trend filtering step
+ENABLE_TREND_FILTERING = False
+
 
 class CampaignRequest(BaseModel):
     """Request model for campaign generation (deprecated - use FormData)"""
@@ -270,24 +273,29 @@ async def generate_campaign(
             f"   📊 {trend['category']}: {', '.join(trend['interests'][:3])}...")
 
     # STEP 3: Filter trends with OpenAI (LLM-based safety check)
-    logger.info(
-        f"🔍 Step 3: Filtering trends with OpenAI for campaign suitability...")
-    filtered_trends = await trend_filter_service.filter_trends_for_campaign(
-        trends=trends,
-        campaign_theme=campaign_theme,
-    )
-
-    if not filtered_trends:
-        logger.error("❌ Step 3 Failed: No suitable trends after filtering")
-        raise HTTPException(
-            status_code=400,
-            detail="No suitable trends found after filtering for campaign safety"
+    if ENABLE_TREND_FILTERING:
+        logger.info(
+            f"🔍 Step 3: Filtering trends with OpenAI for campaign suitability...")
+        filtered_trends = await trend_filter_service.filter_trends_for_campaign(
+            trends=trends,
+            campaign_theme=campaign_theme,
         )
 
-    logger.info(
-        f"✅ Step 3 Complete: {len(trends)} → {len(filtered_trends)} suitable trends")
-    for trend in filtered_trends:
-        logger.info(f"   ✓ Kept: {trend['category']}")
+        if not filtered_trends:
+            logger.error("❌ Step 3 Failed: No suitable trends after filtering")
+            raise HTTPException(
+                status_code=400,
+                detail="No suitable trends found after filtering for campaign safety"
+            )
+
+        logger.info(
+            f"✅ Step 3 Complete: {len(trends)} → {len(filtered_trends)} suitable trends")
+        for trend in filtered_trends:
+            logger.info(f"   ✓ Kept: {trend['category']}")
+    else:
+        logger.info(
+            f"⏭️  Step 3 Skipped: Trend filtering disabled (ENABLE_TREND_FILTERING=False)")
+        filtered_trends = trends
 
     # STEP 4: Match filtered trends with users
     logger.info(f"🎯 Step 4: Matching filtered trends with 5 users...")
