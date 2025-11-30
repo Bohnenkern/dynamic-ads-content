@@ -83,9 +83,6 @@ const UserTab = ({ user, userResult, campaignResult }) => {
                           alt={`Ad for ${image.trend_category}`}
                           className="ad-image"
                         />
-                        <div className="ad-overlay">
-                          <span className="ad-status">Generated</span>
-                        </div>
                       </div>
                       <div className="ad-info">
                         <h4>{image.trend_category}</h4>
