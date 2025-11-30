@@ -62,20 +62,22 @@ CRITICAL RULES for FLUX.2 with Image Reference:
 2. Describe how to integrate the product into trending lifestyle scenes
 3. Keep prompts 50-100 words (concise but descriptive)
 4. Use professional product photography terminology
-5. Integrate trending interests SUBTLY in background elements and mood
-6. Format: Scene Setup → Background Elements → Lighting → Mood → Composition
-7. Avoid describing the product itself - it's already in the reference image
+5. Use ONLY ONE SPECIFIC lifestyle element - keep it minimal and focused (e.g., "laptop with code editor" OR "running shoes" OR "vegan cookbook" - NOT multiple items)
+6. Be SPECIFIC - use the actual interest name provided (e.g., "Machine Learning textbook" not "tech books")
+7. Format: Scene Setup → ONE Specific Element → Lighting → Mood → Composition
+8. Avoid describing the product itself - it's already in the reference image
+9. IMPORTANT: Keep background CLEAN and MINIMAL - only ONE lifestyle prop to avoid cluttered images
 
-Example structure: "Professional studio product photography with [product] as hero product, [trend-specific background elements] in soft focus, [lighting style], [mood], [composition]"
+Example structure: "Professional studio product photography with [product] as hero product, [ONE specific item: e.g., MacBook with Python code OR running medal OR coffee beans] subtly placed in soft focus, [lighting style], [mood], [composition]"
 
-The reference image contains the product. Your prompt should describe the SCENE around it."""
+The reference image contains the product. Your prompt should describe a CLEAN SCENE with ONE SPECIFIC lifestyle element."""
 
             user_message = f"""Optimize this advertising image prompt for FLUX.2 with product image reference:
 
 CONTEXT:
 - Product: {product_description}
 - Target Audience: {user_age} year old {user_occupation}
-- Trending Interests: {', '.join(top_interests)}
+- Primary Interest: {top_interests[0] if top_interests else 'lifestyle'}
 - Note: Product image is provided as reference
 
 BASE PROMPT STRUCTURE:
@@ -83,12 +85,15 @@ BASE PROMPT STRUCTURE:
 
 Create an optimized FLUX.2 prompt that:
 1. Focuses on SCENE COMPOSITION around the product (already in reference image)
-2. Integrates trending interests as subtle BACKGROUND ELEMENTS
+2. Integrates ONLY ONE lifestyle element related to the primary interest - keep it MINIMAL
 3. Uses professional product photography terminology
 4. Describes lighting, mood, and composition
-5. Keeps the product as hero but describes the lifestyle scene around it
+5. Keeps background CLEAN and NOT OVERLOADED
 
-REMEMBER: Don't describe the product itself - describe the SCENE, BACKGROUND, LIGHTING, and MOOD.
+REMEMBER: 
+- Don't describe the product itself - describe the SCENE, BACKGROUND, LIGHTING, and MOOD
+- Use ONLY ONE lifestyle prop in background - avoid cluttered compositions
+- Keep it SIMPLE and FOCUSED on the product
 
 OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
 

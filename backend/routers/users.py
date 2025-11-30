@@ -380,31 +380,71 @@ async def generate_campaign(
         user_count = trend_user_counts.get(trend["category"], 0)
         logger.info(f"      • {trend['category']}: {user_count} users matched")
 
-    trend_prompts = {}
+    # Prepare data for parallel OpenAI prompt optimization
+    trend_data_for_optimization = []
     for trend in selected_trends:
         trend_category = trend["category"]
         trend_interests = trend["interests"]
 
+        # Find which specific sub-interests users actually have (not all trend interests)
+        user_specific_interests = set()
+        for match_result in match_results:
+            for match in match_result.get("matched_interests", []):
+                if match["category"] == trend_category:
+                    # Use the specific interest name, not the category
+                    user_specific_interests.add(match["interest"])
+
+        # Use only TOP 1-2 most relevant interests to avoid overloaded images
+        # Select the most specific interest that matches user interests
+        relevant_interests = list(user_specific_interests)[
+            :1] if user_specific_interests else trend_interests[:1]
+
         structured_prompt = image_prompt_builder.build_prompt_for_trend(
             product_description=product_description,
             trend_category=trend_category,
-            trend_interests=trend_interests
+            trend_interests=relevant_interests
         )
 
-        optimized_prompt = await openai_service.optimize_image_prompt(
+        trend_data_for_optimization.append({
+            "category": trend_category,
+            "structured_prompt": structured_prompt,
+            "relevant_interests": relevant_interests
+        })
+
+    # Parallelize OpenAI prompt optimization for all trends
+    logger.info(
+        f"   🔄 Optimizing {len(trend_data_for_optimization)} prompts in parallel with GPT-4o...")
+    optimization_tasks = []
+    for data in trend_data_for_optimization:
+        task = openai_service.optimize_image_prompt(
             product_description=product_description,
             user_data={"name": "Campaign", "id": 0, "age": 30,
                        "demographics": {"occupation": "General"}},
-            matched_interests=[{"interest": interest, "category": trend_category}
-                               for interest in trend_interests[:3]],
-            base_structured_prompt=structured_prompt
+            matched_interests=[{"interest": interest, "category": data["category"]}
+                               for interest in data["relevant_interests"][:1]],
+            base_structured_prompt=data["structured_prompt"]
         )
+        optimization_tasks.append(task)
 
-        trend_prompts[trend_category] = optimized_prompt
+    # Execute all optimizations in parallel
+    import asyncio
+    optimized_prompts_list = await asyncio.gather(*optimization_tasks, return_exceptions=True)
+
+    # Build trend_prompts dictionary
+    trend_prompts = {}
+    for data, optimized_prompt in zip(trend_data_for_optimization, optimized_prompts_list):
+        if isinstance(optimized_prompt, Exception):
+            logger.error(
+                f"Error optimizing prompt for {data['category']}: {str(optimized_prompt)}")
+            # Fallback to basic prompt conversion
+            from prompts.image_prompt_builder import image_prompt_builder
+            optimized_prompt = image_prompt_builder.convert_to_simple_prompt(
+                data["structured_prompt"])
+        trend_prompts[data["category"]] = optimized_prompt
         api_calls["openai_gpt4o"] += 1  # Count GPT-4o optimization call
 
     logger.info(
-        f"✅ Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts")
+        f"✅ Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts (optimized in parallel)")
     logger.info(
         f"   📊 API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
 
@@ -418,11 +458,14 @@ async def generate_campaign(
         f"🎨 Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
     logger.info(
         f"   📸 Using FLUX.2 Image Editing with product image as input_image")
+    logger.info(
+        f"   ⚡ PARALLEL EXECUTION: All {images_to_generate} images will be generated simultaneously")
     if len(trend_prompts) > MAX_IMAGES_PER_CAMPAIGN:
         logger.warning(
             f"   ⚠️  Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
 
     # Pass the product image to Black Forest FLUX.2 API (image editing mode)
+    # PARALLELIZED: All image generations run concurrently
     trend_images = await image_service.generate_images_for_trends(
         trend_prompts=limited_trend_prompts,
         product_name=product_description.split()[0],
@@ -438,7 +481,7 @@ async def generate_campaign(
         image_service.cache_trend_image(trend_category, image_data)
 
     logger.info(
-        f"✅ Step 7 Complete: Generated {len(trend_images)} trend images")
+        f"✅ Step 7 Complete: Generated {len(trend_images)} trend images in parallel (much faster!)")
     logger.info(
         f"   🖼️  Black Forest API calls: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
 

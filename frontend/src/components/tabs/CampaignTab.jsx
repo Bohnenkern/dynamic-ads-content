@@ -32,7 +32,6 @@ const CampaignTab = ({
           <textarea
             id="productDescription"
             className="form-textarea"
-            placeholder="e.g., Samsung Galaxy S20 - Premium Smartphone with 5G, 64MP Camera, 120Hz Display"
             value={productDescription}
             onChange={(e) => setProductDescription(e.target.value)}
             rows={3}
@@ -50,7 +49,6 @@ const CampaignTab = ({
             id="campaignTheme"
             type="text"
             className="form-input"
-            placeholder="e.g., Samsung S20 Launch Campaign"
             value={campaignTheme}
             onChange={(e) => setCampaignTheme(e.target.value)}
             disabled={isLoading}

@@ -24,8 +24,8 @@ class ImagePromptBuilder:
 
         Args:
             product_description: Description of the product being advertised
-            trend_category: The trend category (e.g., "Technology", "Sports")
-            trend_interests: List of interests in this trend category
+            trend_category: The trend category (e.g., "Technology & AI", "Sports & Fitness")
+            trend_interests: List of SPECIFIC interests in this trend (e.g., ["Machine Learning", "Deep Learning"] not just category)
             additional_context: Optional additional context
 
         Returns:
@@ -37,9 +37,9 @@ class ImagePromptBuilder:
         background = self._generate_background_for_category(
             trend_category, trend_interests)
 
-        # Build lifestyle elements based on trend interests
+        # Build lifestyle elements based on SINGLE MOST RELEVANT interest (not multiple)
         lifestyle_elements = self._generate_lifestyle_elements_for_trend(
-            trend_category, trend_interests[:3]
+            trend_category, trend_interests[:1]
         )
 
         structured_prompt = {
@@ -54,8 +54,8 @@ class ImagePromptBuilder:
             ],
             "context": {
                 "trend_category": trend_category,
-                "trend_interests": trend_interests[:3],
-                "lifestyle_theme": f"Subtle {trend_category.lower()} lifestyle integration in background"
+                "primary_interest": trend_interests[0] if trend_interests else trend_category,
+                "lifestyle_theme": f"Integrate {trend_interests[0] if trend_interests else trend_category} element subtly and minimally in background"
             },
             "style": "Ultra-realistic product photography with commercial quality",
             "color_palette": color_palette,
@@ -277,17 +277,80 @@ class ImagePromptBuilder:
         return background_map.get(category, "Professional lifestyle setting with clean, aspirational atmosphere")
 
     def _generate_lifestyle_elements_for_trend(self, category: str, interests: List[str]) -> str:
-        """Generates subtle lifestyle elements for background based on trend"""
+        """Generates ONE SPECIFIC lifestyle element for background - clean and focused, not overloaded"""
+        # Select only the FIRST (most relevant) interest to keep image clean
+        if interests:
+            interest = interests[0]
+            interest_lower = interest.lower()
+
+            # Map specific interest to ONE concrete visual prop (not multiple items)
+            if "machine learning" in interest_lower or "deep learning" in interest_lower:
+                return "laptop with Python code visible in soft focus background"
+            elif "chatgpt" in interest_lower or "ai" in interest_lower:
+                return "laptop with AI interface visible in soft focus background"
+            elif "trail running" in interest_lower:
+                return "trail running shoes on wooden surface in background"
+            elif "marathon" in interest_lower or "running" in interest_lower:
+                return "running shoes and finisher medal in soft focus background"
+            elif "pc gaming" in interest_lower:
+                return "gaming keyboard with RGB lighting in background"
+            elif "mobile gaming" in interest_lower:
+                return "smartphone with game screen in background"
+            elif "rpg games" in interest_lower or "indie games" in interest_lower:
+                return "game controller in soft focus background"
+            elif "portrait photography" in interest_lower or "street photography" in interest_lower:
+                return "DSLR camera in background"
+            elif "photo editing" in interest_lower:
+                return "laptop with photo editing software in background"
+            elif "vegan cooking" in interest_lower:
+                return "fresh vegetables and vegan cookbook in background"
+            elif "meal prep" in interest_lower:
+                return "glass meal prep containers in background"
+            elif "cooking" in interest_lower or "international cuisine" in interest_lower:
+                return "cookbook and fresh herbs in background"
+            elif "live music" in interest_lower or "indie music" in interest_lower:
+                return "concert ticket and headphones in background"
+            elif "guitar" in interest_lower or "playing guitar" in interest_lower:
+                return "acoustic guitar in soft focus background"
+            elif "beach holidays" in interest_lower or "island hopping" in interest_lower:
+                return "passport and sunglasses in background"
+            elif "travel photography" in interest_lower:
+                return "camera and world map in background"
+            elif "wine tasting" in interest_lower or "wine pairing" in interest_lower:
+                return "wine glass on wooden surface in background"
+            elif "fine dining" in interest_lower or "restaurant reviews" in interest_lower:
+                return "elegant plate setting in background"
+            elif "crossfit" in interest_lower:
+                return "kettlebell in soft focus background"
+            elif "fitness training" in interest_lower:
+                return "fitness tracker and water bottle in background"
+            elif "netflix binging" in interest_lower or "streaming" in interest_lower:
+                return "remote control on cozy blanket in background"
+            elif "basketball" in interest_lower:
+                return "basketball in soft focus background"
+            elif "football" in interest_lower or "playing football" in interest_lower:
+                return "football in background"
+            elif "strategy games" in interest_lower:
+                return "gaming mouse on desk in background"
+            elif "5g technology" in interest_lower or "wearable tech" in interest_lower:
+                return "smartwatch on surface in background"
+            elif "smart home" in interest_lower:
+                return "smart speaker in background"
+            else:
+                # Use simple, single prop based on interest name
+                return f"{interest} item subtly placed in soft focus background"
+
+        # Fallback to category-based
         elements_map = {
-            "Technology": "subtle laptop and smartphone in soft focus background",
-            "Sports": "subtle sports equipment like dumbbells or yoga mat in background",
-            "Gaming": "subtle gaming controller or headset in soft focus background",
-            "Travel": "subtle map or travel items in background",
-            "Food": "subtle fresh ingredients or cooking utensils in background",
-            "Music": "subtle headphones or vinyl records in background",
-            "Fashion": "subtle fabric swatches or accessories in background",
-            "Health": "subtle wellness items like plants or natural elements",
-            "Outdoor": "subtle natural elements like wood or stones in background"
+            "Technology": "laptop and smartphone in soft focus background",
+            "Sports": "sports equipment in background",
+            "Gaming": "gaming controller in soft focus background",
+            "Travel": "map or travel items in background",
+            "Food": "fresh ingredients in background",
+            "Music": "headphones in background",
+            "Fashion": "fabric swatches in background",
+            "Health": "wellness items in background",
+            "Outdoor": "natural elements in background"
         }
         return elements_map.get(category, "subtle lifestyle props in soft focus background")
 
