@@ -13,18 +13,24 @@ const TabNavigation = ({ activeTab, onTabChange }) => {
 
   return (
     <nav className="tab-navigation">
-      <div className="tab-container">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`tab ${activeTab === tab.id ? 'active' : ''} ${
-              tab.isPrimary ? 'primary' : ''
-            }`}
-            onClick={() => onTabChange(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="nav-content">
+        <div className="nav-logo">
+          OnPoint
+        </div>
+        <div className="tab-container">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab ${activeTab === tab.id ? 'active' : ''} ${
+                tab.isPrimary ? 'primary' : ''
+              }`}
+              onClick={() => onTabChange(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="nav-actions"></div>
       </div>
     </nav>
   )
