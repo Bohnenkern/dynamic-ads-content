@@ -365,6 +365,27 @@ async def generate_campaign(
     # Step 4: Interest matching (1 per user)
     api_calls["openai_gpt4o_mini"] += len(match_results)
 
+    # PREPARE STEP 9 (Preview User Selection) - Moved up for parallelization
+    random_user_match = None
+    user_optimized_prompt_task = None
+    random_user_data = None
+    
+    if match_results:
+        random_user_match = random.choice(match_results)
+        random_user_id = random_user_match["user_id"]
+        random_user_data = user_service.get_user_by_id(random_user_id)
+        user_structured_prompt = structured_prompts.get(random_user_id)
+        
+        if user_structured_prompt and random_user_data:
+            logger.info(f" Preparing preview generation for random user: {random_user_data.get('name')}")
+            user_optimized_prompt_task = openai_service.optimize_image_prompt(
+                product_description=product_description,
+                user_data=random_user_data,
+                matched_interests=random_user_match.get("matched_interests", []),
+                base_structured_prompt=user_structured_prompt,
+                image_analysis=image_analysis
+            )
+
     # STEP 6: Build prompts for TOP trend categories (limited to prevent API overuse)
     # Select top trends based on:
     # 1. How many users matched this trend
@@ -426,10 +447,12 @@ async def generate_campaign(
             "relevant_interests": relevant_interests
         })
 
-    # Parallelize OpenAI prompt optimization for all trends
+    # Parallelize OpenAI prompt optimization for all trends AND preview user
     logger.info(
-        f"    Optimizing {len(trend_data_for_optimization)} prompts in parallel with GPT-4o...")
+        f"    Optimizing {len(trend_data_for_optimization)} trend prompts + 1 user prompt in parallel with GPT-4o...")
+    
     optimization_tasks = []
+    # 1. Trend Optimization Tasks
     for data in trend_data_for_optimization:
         task = openai_service.optimize_image_prompt(
             product_description=product_description,
@@ -442,14 +465,32 @@ async def generate_campaign(
 
         )
         optimization_tasks.append(task)
+    
+    # 2. User Optimization Task (if exists)
+    if user_optimized_prompt_task:
+        optimization_tasks.append(user_optimized_prompt_task)
 
     # Execute all optimizations in parallel
     import asyncio
-    optimized_prompts_list = await asyncio.gather(*optimization_tasks, return_exceptions=True)
+    all_optimized_results = await asyncio.gather(*optimization_tasks, return_exceptions=True)
+
+    # Separate results
+    user_optimized_prompt = None
+    if user_optimized_prompt_task:
+        user_optimized_prompt = all_optimized_results[-1]
+        trend_optimized_results = all_optimized_results[:-1]
+        
+        if isinstance(user_optimized_prompt, Exception):
+            logger.error(f"Error optimizing preview prompt: {str(user_optimized_prompt)}")
+            user_optimized_prompt = None
+        else:
+            api_calls["openai_gpt4o"] += 1
+    else:
+        trend_optimized_results = all_optimized_results
 
     # Build trend_prompts dictionary
     trend_prompts = {}
-    for data, optimized_prompt in zip(trend_data_for_optimization, optimized_prompts_list):
+    for data, optimized_prompt in zip(trend_data_for_optimization, trend_optimized_results):
         if isinstance(optimized_prompt, Exception):
             logger.error(
                 f"Error optimizing prompt for {data['category']}: {str(optimized_prompt)}")
@@ -464,42 +505,92 @@ async def generate_campaign(
     logger.info(
         f"    API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
 
-    # STEP 7: Generate images ONLY for selected trends (MAX 5) with Black Forest API
+    # STEP 7 & 9: Generate images for trends AND previews in parallel
     # Further limit to MAX_IMAGES_PER_CAMPAIGN to protect API key
     images_to_generate = min(len(trend_prompts), MAX_IMAGES_PER_CAMPAIGN)
     limited_trend_prompts = dict(
         list(trend_prompts.items())[:images_to_generate])
 
     logger.info(
-        f" Step 7: Generating {images_to_generate} images with Black Forest API (limited to {MAX_IMAGES_PER_CAMPAIGN})...")
+        f" Step 7 & 9: Generating {images_to_generate} trend images + 3 preview images in parallel...")
     logger.info(
         f"    Using FLUX.2 Image Editing with product image as input_image")
     logger.info(
-        f"    PARALLEL EXECUTION: All {images_to_generate} images will be generated simultaneously")
-    if len(trend_prompts) > MAX_IMAGES_PER_CAMPAIGN:
-        logger.warning(
-            f"     Limiting from {len(trend_prompts)} trends to {MAX_IMAGES_PER_CAMPAIGN} images to protect API key")
-
-    # Pass the product image to Black Forest FLUX.2 API (image editing mode)
-    # PARALLELIZED: All image generations run concurrently
-    trend_images = await image_service.generate_images_for_trends(
+        f"    PARALLEL EXECUTION: All images will be generated simultaneously")
+    
+    image_generation_tasks = []
+    
+    # Task 1: Trend Images (returns dict)
+    trend_images_task = image_service.generate_images_for_trends(
         trend_prompts=limited_trend_prompts,
         product_name=product_description.split()[0],
-        reference_image_url=image_base64_uri,  # Raw base64 string
-        # Note: FLUX.2 doesn't have strength parameter, control via prompt engineering
-        image_prompt_strength=0.3  # Ignored, kept for API compatibility
+        reference_image_url=image_base64_uri,
+        image_prompt_strength=0.3
     )
-
+    image_generation_tasks.append(trend_images_task)
+    
+    # Tasks 2-4: Preview Images (if prompt available)
+    preview_categories = ["preview_banner", "preview_vertical", "preview_rectangular"]
+    preview_dims = [(1280, 320), (512, 1024), (768, 768)]
+    
+    if user_optimized_prompt:
+        for category, (w, h) in zip(preview_categories, preview_dims):
+            task = image_service.generate_image_for_trend(
+                prompt=user_optimized_prompt,
+                trend_category=category,
+                width=w,
+                height=h,
+                reference_image_url=image_base64_uri
+            )
+            image_generation_tasks.append(task)
+            
+    # Execute ALL image generations in parallel
+    all_image_results = await asyncio.gather(*image_generation_tasks, return_exceptions=True)
+    
+    # Process Trend Images Result
+    trend_images_result = all_image_results[0]
+    if isinstance(trend_images_result, Exception):
+        logger.error(f"Error in trend image generation: {str(trend_images_result)}")
+        trend_images = {}
+    else:
+        trend_images = trend_images_result
+        
     # Count actual images generated
-    api_calls["black_forest"] = len(trend_images)
+    api_calls["black_forest"] += len(trend_images)
 
     for trend_category, image_data in trend_images.items():
         image_service.cache_trend_image(trend_category, image_data)
 
+    # Process Preview Images Results
+    preview_formats = {}
+    if user_optimized_prompt and len(all_image_results) > 1:
+        preview_results_list = all_image_results[1:]
+        
+        # Map results back to categories
+        banner_res = preview_results_list[0] if len(preview_results_list) > 0 and not isinstance(preview_results_list[0], Exception) else None
+        vertical_res = preview_results_list[1] if len(preview_results_list) > 1 and not isinstance(preview_results_list[1], Exception) else None
+        rect_res = preview_results_list[2] if len(preview_results_list) > 2 and not isinstance(preview_results_list[2], Exception) else None
+        
+        if random_user_data:
+            preview_formats = {
+                "user_id": random_user_data.get("id"),
+                "user_name": random_user_data.get("name"),
+                "banner": banner_res,
+                "vertical": vertical_res,
+                "rectangular": rect_res
+            }
+            
+            # Count preview images
+            if banner_res: api_calls["black_forest"] += 1
+            if vertical_res: api_calls["black_forest"] += 1
+            if rect_res: api_calls["black_forest"] += 1
+            
+            logger.info(f" Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
+
     logger.info(
-        f" Step 7 Complete: Generated {len(trend_images)} trend images in parallel (much faster!)")
+        f" Step 7 & 9 Complete: Generated all images in parallel (much faster!)")
     logger.info(
-        f"     Black Forest API calls: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
+        f"     Black Forest API calls: {api_calls['black_forest']}")
 
     # STEP 8: Map generated images to users based on their matched interests
     logger.info(f" Step 8: Mapping trend images to users...")
@@ -540,65 +631,6 @@ async def generate_campaign(
 
     logger.info(
         f" Step 8 Complete: Mapped images to {len(campaign_results)} users")
-
-    # STEP 9: Generate Preview Formats for a random user
-    logger.info(" Step 9: Generating Preview Formats for a random user...")
-    preview_formats = {}
-    if match_results:
-        import random
-        random_user_match = random.choice(match_results)
-        random_user_id = random_user_match["user_id"]
-        random_user_data = user_service.get_user_by_id(random_user_id)
-        
-        # Get structured prompt
-        user_structured_prompt = structured_prompts.get(random_user_id)
-        
-        if user_structured_prompt and random_user_data:
-            # Optimize prompt for this user
-            user_optimized_prompt = await openai_service.optimize_image_prompt(
-                product_description=product_description,
-                user_data=random_user_data,
-                matched_interests=random_user_match.get("matched_interests", []),
-                base_structured_prompt=user_structured_prompt,
-                image_analysis=image_analysis
-            )
-            
-            # Generate 3 formats
-            # Use asyncio.gather for parallel generation
-            preview_tasks = [
-                image_service.generate_image_for_trend(
-                    prompt=user_optimized_prompt,
-                    trend_category="preview_banner",
-                    width=1280,
-                    height=320,
-                    reference_image_url=image_base64_uri
-                ),
-                image_service.generate_image_for_trend(
-                    prompt=user_optimized_prompt,
-                    trend_category="preview_vertical",
-                    width=512,
-                    height=1024,
-                    reference_image_url=image_base64_uri
-                ),
-                image_service.generate_image_for_trend(
-                    prompt=user_optimized_prompt,
-                    trend_category="preview_rectangular",
-                    width=768,
-                    height=768,
-                    reference_image_url=image_base64_uri
-                )
-            ]
-            
-            preview_results = await asyncio.gather(*preview_tasks)
-            
-            preview_formats = {
-                "user_id": random_user_id,
-                "user_name": random_user_data.get("name"),
-                "banner": preview_results[0],
-                "vertical": preview_results[1],
-                "rectangular": preview_results[2]
-            }
-            logger.info(f" Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
 
     logger.info("=" * 70)
     logger.info(" CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
