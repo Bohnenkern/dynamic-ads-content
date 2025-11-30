@@ -127,9 +127,9 @@ const UserTab = ({ user, userResult, campaignResult }) => {
           </div>
         </div>
 
-        {/* Generated Images */}
+        {/* Generated Images - One per Interest */}
         <div className="section">
-          <h3>Generated Ads ({userResult.images_count || 0})</h3>
+          <h3>Generated Ads ({userResult.images_count || 0}/3)</h3>
           <div className="generated-ads-grid">
             {userResult.generated_images && userResult.generated_images.length > 0 ? (
               userResult.generated_images.map((image, idx) => (
@@ -139,12 +139,12 @@ const UserTab = ({ user, userResult, campaignResult }) => {
                       <div className="ad-image-container">
                         <img
                           src={image.image_url}
-                          alt={`Ad for ${image.trend_category}`}
+                          alt={`Ad for ${image.interest}`}
                           className="ad-image"
                         />
                       </div>
                       <div className="ad-info">
-                        <h4>{image.trend_category}</h4>
+                        <h4>{image.interest}</h4>
                         <p className="ad-prompt">{image.prompt_used?.substring(0, 100)}...</p>
                       </div>
                     </>
@@ -155,7 +155,7 @@ const UserTab = ({ user, userResult, campaignResult }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
                       </div>
-                      <h4>{image.trend_category || 'Ad'}</h4>
+                      <h4>{image.interest || 'Interest'}</h4>
                       <p>{image.message || 'Image generation in progress...'}</p>
                       <small>{image.status || 'pending'}</small>
                     </div>
@@ -170,7 +170,7 @@ const UserTab = ({ user, userResult, campaignResult }) => {
                   </svg>
                 </div>
                 <p>No images generated for this user</p>
-                <small>User may not have matched any filtered trends</small>
+                <small>Run a campaign to generate personalized ads</small>
               </div>
             )}
           </div>

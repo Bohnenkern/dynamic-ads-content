@@ -7,23 +7,8 @@
     "location": "Berlin",
     "interests": [
       "Machine Learning",
-      "Deep Learning",
-      "ChatGPT",
-      "Trail Running",
-      "Marathon Training",
-      "Vegan Cooking",
-      "Meal Prep",
-      "Live Music",
-      "Indie Music",
-      "Portrait Photography",
-      "Street Photography"
-    ],
-    "hobbies": [
-      "Running",
-      "Healthy Eating",
-      "Concert Visits",
-      "Tech Blogging",
-      "Photo Editing"
+      "Street Photography",
+      "Meal Prep"
     ],
     "demographics": {
       "gender": "female",
@@ -39,22 +24,8 @@
     "location": "Munich",
     "interests": [
       "Strategy Games",
-      "Fine Dining",
-      "Wine Pairing",
       "City Trips",
-      "Travel Photography",
-      "Smartphones",
-      "5G Technology",
-      "Wearable Tech",
-      "Cristiano Ronaldo",
-      "Minecraft",
-      "Coca Cola"
-    ],
-    "hobbies": [
-      "Video Gaming",
-      "Restaurant Reviews",
-      "Travel Blogging",
-      "Wine Tasting"
+      "Minecraft"
     ],
     "demographics": {
       "gender": "male",
@@ -69,23 +40,9 @@
     "language": "en",
     "location": "Hamburg",
     "interests": [
-      "Beach Holidays",
       "Beach Volleyball",
-      "Swimming",
-      "Netflix Binging",
-      "Streaming Services",
-      "Basketball",
-      "Fitness Training",
-      "International Cuisine",
-      "Food Photography",
-      "Adventure Travel",
-      "Travel Planning"
-    ],
-    "hobbies": [
-      "Movie Nights",
-      "Recipe Experimentation",
-      "Cooking",
-      "Social Media Marketing"
+      "Breaking Bad",
+      "Adventure Travel"
     ],
     "demographics": {
       "gender": "female",
@@ -100,24 +57,9 @@
     "language": "fr",
     "location": "Frankfurt",
     "interests": [
-      "Live Music",
       "Music Festivals",
-      "Fine Dining",
       "Wine Tasting",
-      "AI",
-      "Machine Learning",
-      "Running",
-      "Fitness Training",
-      "CrossFit",
-      "Luxury Travel",
-      "Business Travel"
-    ],
-    "hobbies": [
-      "Playing Guitar",
-      "Concert Visits",
-      "City Trips",
-      "Leadership",
-      "Networking"
+      "Hackathon"
     ],
     "demographics": {
       "gender": "male",
@@ -133,23 +75,8 @@
     "location": "Cologne",
     "interests": [
       "Mobile Gaming",
-      "RPG Games",
-      "Indie Games",
-      "Smartphones",
-      "Smart Home",
-      "Wearable Tech",
-      "Netflix Binging",
       "TV Series",
-      "Vegan Cooking",
-      "Meal Prep",
-      "Beach Holidays",
-      "Island Hopping"
-    ],
-    "hobbies": [
-      "Gaming",
-      "Tech Reviews",
-      "Streaming",
-      "Healthy Eating"
+      "Beach Holidays"
     ],
     "demographics": {
       "gender": "female",

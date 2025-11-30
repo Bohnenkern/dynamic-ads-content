@@ -21,8 +21,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # API Call Limits to prevent overuse
-MAX_IMAGES_PER_CAMPAIGN = 5  # Black Forest API limit
 MAX_TRENDS_FOR_OPTIMIZATION = 5  # OpenAI GPT-4o limit
+# Generate one image per user interest (3 interests per user)
+IMAGES_PER_USER = 3
 
 # boolean for trend filtering step
 ENABLE_TREND_FILTERING = False
@@ -369,104 +370,84 @@ async def generate_campaign(
     random_user_match = None
     user_optimized_prompt_task = None
     random_user_data = None
-    
+
     if match_results:
         random_user_match = random.choice(match_results)
         random_user_id = random_user_match["user_id"]
         random_user_data = user_service.get_user_by_id(random_user_id)
         user_structured_prompt = structured_prompts.get(random_user_id)
-        
+
         if user_structured_prompt and random_user_data:
-            logger.info(f" Preparing preview generation for random user: {random_user_data.get('name')}")
+            logger.info(
+                f" Preparing preview generation for random user: {random_user_data.get('name')}")
             user_optimized_prompt_task = openai_service.optimize_image_prompt(
                 product_description=product_description,
                 user_data=random_user_data,
-                matched_interests=random_user_match.get("matched_interests", []),
+                matched_interests=random_user_match.get(
+                    "matched_interests", []),
                 base_structured_prompt=user_structured_prompt,
                 image_analysis=image_analysis
             )
 
-    # STEP 6: Build prompts for TOP trend categories (limited to prevent API overuse)
-    # Select top trends based on:
-    # 1. How many users matched this trend
-    # 2. Popularity score
-    trend_user_counts = {}
-    for match_result in match_results:
-        for interest in match_result.get("matched_interests", []):
-            category = interest.get("category")
-            if category:
-                trend_user_counts[category] = trend_user_counts.get(
-                    category, 0) + 1
-
-    # Sort filtered trends by user match count + popularity
-    filtered_trends_sorted = sorted(
-        filtered_trends,
-        key=lambda t: (trend_user_counts.get(
-            t["category"], 0), t.get("popularity_score", 0)),
-        reverse=True
-    )
-
-    # Limit to MAX_TRENDS_FOR_OPTIMIZATION (5 trends max)
-    selected_trends = filtered_trends_sorted[:MAX_TRENDS_FOR_OPTIMIZATION]
-
+    # STEP 6: Build prompts for EACH USER'S SPECIFIC INTERESTS (one image per interest)
+    # NEW APPROACH: Generate 3 images per user (one per interest) = 15 total images for 5 users
     logger.info(
-        f"  Step 6: Building prompts for TOP {len(selected_trends)} trend categories (limited to {MAX_TRENDS_FOR_OPTIMIZATION})...")
-    logger.info("    Selected trends based on user matches + popularity:")
-    for trend in selected_trends:
-        user_count = trend_user_counts.get(trend["category"], 0)
-        logger.info(f"      • {trend['category']}: {user_count} users matched")
+        f"🎨 Step 6: Building prompts for each user's {IMAGES_PER_USER} interests...")
+    logger.info(
+        f"    Total images to generate: {len(match_results)} users × {IMAGES_PER_USER} interests = {len(match_results) * IMAGES_PER_USER} images")
 
     # Prepare data for parallel OpenAI prompt optimization
-    trend_data_for_optimization = []
-    for trend in selected_trends:
-        trend_category = trend["category"]
-        trend_interests = trend["interests"]
+    # Structure: [{user_id, user_data, interest, structured_prompt}, ...]
+    user_interest_prompts = []
 
-        # Find which specific sub-interests users actually have (not all trend interests)
-        user_specific_interests = set()
-        for match_result in match_results:
-            for match in match_result.get("matched_interests", []):
-                if match["category"] == trend_category:
-                    # Use the specific interest name, not the category
-                    user_specific_interests.add(match["interest"])
+    for match_result in match_results:
+        user_id = match_result["user_id"]
+        user_data = user_service.get_user_by_id(user_id)
 
-        # Use only TOP 1-2 most relevant interests to avoid overloaded images
-        # Select the most specific interest that matches user interests
-        relevant_interests = list(user_specific_interests)[
-            :1] if user_specific_interests else trend_interests[:1]
+        if not user_data:
+            continue
 
-        structured_prompt = image_prompt_builder.build_prompt_for_trend(
-            product_description=product_description,
-            trend_category=trend_category,
-            trend_interests=relevant_interests
-        )
+        # Get user's raw interests (should be exactly 3)
+        user_interests = user_data.get("interests", [])
 
-        trend_data_for_optimization.append({
-            "category": trend_category,
-            "structured_prompt": structured_prompt,
-            "relevant_interests": relevant_interests
-        })
+        # Generate one image per interest
+        for interest in user_interests[:IMAGES_PER_USER]:
+            # Build structured prompt for this specific interest
+            structured_prompt = image_prompt_builder.build_prompt_for_trend(
+                product_description=product_description,
+                trend_category=interest,  # Use interest as category
+                trend_interests=[interest]  # Single interest
+            )
 
-    # Parallelize OpenAI prompt optimization for all trends AND preview user
+            user_interest_prompts.append({
+                "user_id": user_id,
+                "user_name": user_data.get("name"),
+                "interest": interest,
+                "structured_prompt": structured_prompt
+            })
+
     logger.info(
-        f"    Optimizing {len(trend_data_for_optimization)} trend prompts + 1 user prompt in parallel with GPT-4o...")
-    
+        f"    Prepared {len(user_interest_prompts)} user-interest combinations for optimization")
+
+    # Parallelize OpenAI prompt optimization for all user interests AND preview user
+    logger.info(
+        f"    Optimizing {len(user_interest_prompts)} user-interest prompts in parallel with GPT-4o...")
+
     optimization_tasks = []
-    # 1. Trend Optimization Tasks
-    for data in trend_data_for_optimization:
+
+    # 1. User-Interest Optimization Tasks
+    for data in user_interest_prompts:
+        user_data_for_opt = user_service.get_user_by_id(data["user_id"])
         task = openai_service.optimize_image_prompt(
             product_description=product_description,
-            user_data={"name": "Campaign", "id": 0, "age": 30,
-                       "demographics": {"occupation": "General"}},
-
-            matched_interests=[{"interest": interest, "category": data["category"]}
-                               for interest in data["relevant_interests"][:1]],
+            user_data=user_data_for_opt,
+            matched_interests=[
+                {"interest": data["interest"], "category": data["interest"]}],
             base_structured_prompt=data["structured_prompt"]
-
         )
         optimization_tasks.append(task)
-    
-    # 2. User Optimization Task (if exists)
+
+    # 2. Preview User Optimization Task (if exists)
     if user_optimized_prompt_task:
         optimization_tasks.append(user_optimized_prompt_task)
 
@@ -478,61 +459,60 @@ async def generate_campaign(
     user_optimized_prompt = None
     if user_optimized_prompt_task:
         user_optimized_prompt = all_optimized_results[-1]
-        trend_optimized_results = all_optimized_results[:-1]
-        
+        user_interest_optimized_results = all_optimized_results[:-1]
+
         if isinstance(user_optimized_prompt, Exception):
-            logger.error(f"Error optimizing preview prompt: {str(user_optimized_prompt)}")
+            logger.error(
+                f"Error optimizing preview prompt: {str(user_optimized_prompt)}")
             user_optimized_prompt = None
         else:
             api_calls["openai_gpt4o"] += 1
     else:
-        trend_optimized_results = all_optimized_results
+        user_interest_optimized_results = all_optimized_results
 
-    # Build trend_prompts dictionary
-    trend_prompts = {}
-    for data, optimized_prompt in zip(trend_data_for_optimization, trend_optimized_results):
+    # Build user_interest_prompts_optimized list with optimized prompts
+    for data, optimized_prompt in zip(user_interest_prompts, user_interest_optimized_results):
         if isinstance(optimized_prompt, Exception):
             logger.error(
-                f"Error optimizing prompt for {data['category']}: {str(optimized_prompt)}")
-            # Fallback to basic prompt conversion (using already imported image_prompt_builder)
+                f"Error optimizing prompt for {data['user_name']}'s interest '{data['interest']}': {str(optimized_prompt)}")
+            # Fallback to basic prompt conversion
             optimized_prompt = image_prompt_builder.convert_to_simple_prompt(
                 data["structured_prompt"])
-        trend_prompts[data["category"]] = optimized_prompt
+        data["optimized_prompt"] = optimized_prompt
         api_calls["openai_gpt4o"] += 1  # Count GPT-4o optimization call
 
     logger.info(
-        f" Step 6 Complete: Built {len(trend_prompts)} trend-specific prompts (optimized in parallel)")
+        f"✅ Step 6 Complete: Optimized {len(user_interest_prompts)} user-interest prompts in parallel")
     logger.info(
         f"    API Calls so far - GPT-4o-mini: {api_calls['openai_gpt4o_mini']}, GPT-4o: {api_calls['openai_gpt4o']}")
 
-    # STEP 7 & 9: Generate images for trends AND previews in parallel
-    # Further limit to MAX_IMAGES_PER_CAMPAIGN to protect API key
-    images_to_generate = min(len(trend_prompts), MAX_IMAGES_PER_CAMPAIGN)
-    limited_trend_prompts = dict(
-        list(trend_prompts.items())[:images_to_generate])
-
+    # STEP 7 & 9: Generate images for each user's interests AND previews in parallel
+    # Generate exactly 3 images per user (one per interest) = 15 images total for 5 users
     logger.info(
-        f" Step 7 & 9: Generating {images_to_generate} trend images + 3 preview images in parallel...")
+        f"🖼️  Step 7 & 9: Generating {len(user_interest_prompts)} user-interest images + 3 preview images in parallel...")
     logger.info(
         f"    Using FLUX.2 Image Editing with product image as input_image")
     logger.info(
         f"    PARALLEL EXECUTION: All images will be generated simultaneously")
-    
+
     image_generation_tasks = []
-    
-    # Task 1: Trend Images (returns dict)
-    trend_images_task = image_service.generate_images_for_trends(
-        trend_prompts=limited_trend_prompts,
-        product_name=product_description.split()[0],
-        reference_image_url=image_base64_uri,
-        image_prompt_strength=0.3
-    )
-    image_generation_tasks.append(trend_images_task)
-    
-    # Tasks 2-4: Preview Images (if prompt available)
-    preview_categories = ["preview_banner", "preview_vertical", "preview_rectangular"]
+
+    # Tasks 1-N: User-Interest Images
+    for data in user_interest_prompts:
+        task = image_service.generate_image_for_trend(
+            prompt=data["optimized_prompt"],
+            # Unique identifier
+            trend_category=f"{data['user_name']}_{data['interest']}",
+            product_name=product_description.split()[0],
+            reference_image_url=image_base64_uri
+        )
+        image_generation_tasks.append(task)
+
+    # Tasks N+1 to N+3: Preview Images (if prompt available)
+    preview_categories = ["preview_banner",
+                          "preview_vertical", "preview_rectangular"]
     preview_dims = [(1280, 320), (512, 1024), (768, 768)]
-    
+
     if user_optimized_prompt:
         for category, (w, h) in zip(preview_categories, preview_dims):
             task = image_service.generate_image_for_trend(
@@ -543,34 +523,41 @@ async def generate_campaign(
                 reference_image_url=image_base64_uri
             )
             image_generation_tasks.append(task)
-            
+
     # Execute ALL image generations in parallel
     all_image_results = await asyncio.gather(*image_generation_tasks, return_exceptions=True)
-    
-    # Process Trend Images Result
-    trend_images_result = all_image_results[0]
-    if isinstance(trend_images_result, Exception):
-        logger.error(f"Error in trend image generation: {str(trend_images_result)}")
-        trend_images = {}
-    else:
-        trend_images = trend_images_result
-        
-    # Count actual images generated
-    api_calls["black_forest"] += len(trend_images)
 
-    for trend_category, image_data in trend_images.items():
-        image_service.cache_trend_image(trend_category, image_data)
+    # Process User-Interest Images Results
+    user_interest_images = {}
+    for idx, data in enumerate(user_interest_prompts):
+        result = all_image_results[idx]
+        if isinstance(result, Exception):
+            logger.error(
+                f"Error generating image for {data['user_name']}'s interest '{data['interest']}': {str(result)}")
+        elif result:
+            # Store with composite key: user_id + interest
+            key = f"{data['user_id']}_{data['interest']}"
+            user_interest_images[key] = {
+                **result,
+                "user_id": data["user_id"],
+                "interest": data["interest"]
+            }
+            api_calls["black_forest"] += 1
 
     # Process Preview Images Results
     preview_formats = {}
-    if user_optimized_prompt and len(all_image_results) > 1:
-        preview_results_list = all_image_results[1:]
-        
+    if user_optimized_prompt:
+        preview_start_idx = len(user_interest_prompts)
+        preview_results_list = all_image_results[preview_start_idx:]
+
         # Map results back to categories
-        banner_res = preview_results_list[0] if len(preview_results_list) > 0 and not isinstance(preview_results_list[0], Exception) else None
-        vertical_res = preview_results_list[1] if len(preview_results_list) > 1 and not isinstance(preview_results_list[1], Exception) else None
-        rect_res = preview_results_list[2] if len(preview_results_list) > 2 and not isinstance(preview_results_list[2], Exception) else None
-        
+        banner_res = preview_results_list[0] if len(preview_results_list) > 0 and not isinstance(
+            preview_results_list[0], Exception) else None
+        vertical_res = preview_results_list[1] if len(preview_results_list) > 1 and not isinstance(
+            preview_results_list[1], Exception) else None
+        rect_res = preview_results_list[2] if len(preview_results_list) > 2 and not isinstance(
+            preview_results_list[2], Exception) else None
+
         if random_user_data:
             preview_formats = {
                 "user_id": random_user_data.get("id"),
@@ -579,68 +566,79 @@ async def generate_campaign(
                 "vertical": vertical_res,
                 "rectangular": rect_res
             }
-            
+
             # Count preview images
-            if banner_res: api_calls["black_forest"] += 1
-            if vertical_res: api_calls["black_forest"] += 1
-            if rect_res: api_calls["black_forest"] += 1
-            
-            logger.info(f" Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
+            if banner_res:
+                api_calls["black_forest"] += 1
+            if vertical_res:
+                api_calls["black_forest"] += 1
+            if rect_res:
+                api_calls["black_forest"] += 1
+
+            logger.info(
+                f"✅ Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
 
     logger.info(
-        f" Step 7 & 9 Complete: Generated all images in parallel (much faster!)")
+        f"✅ Step 7 & 9 Complete: Generated all images in parallel (much faster!)")
     logger.info(
-        f"     Black Forest API calls: {api_calls['black_forest']}")
+        f"    Black Forest API calls: {api_calls['black_forest']}")
 
-    # STEP 8: Map generated images to users based on their matched interests
-    logger.info(f" Step 8: Mapping trend images to users...")
+    # STEP 8: Map generated images to users based on their interests
+    logger.info(f"📊 Step 8: Mapping user-interest images to users...")
     campaign_results = []
+
     for match_result in match_results:
         user_id = match_result["user_id"]
-        user_matched_categories = list(
-            set([m["category"] for m in match_result.get("matched_interests", [])]))
+        user_data = user_service.get_user_by_id(user_id)
+
+        if not user_data:
+            continue
+
+        # Get user's raw interests (exactly 3)
+        user_interests = user_data.get("interests", [])
 
         user_images = []
-        for category in user_matched_categories:
-            trend_image = image_service.get_trend_image(category)
-            if trend_image:
+        for interest in user_interests:
+            # Look up image by composite key
+            key = f"{user_id}_{interest}"
+            image_data = user_interest_images.get(key)
+
+            if image_data:
                 user_images.append({
-                    "trend_category": category,
-                    "image_url": trend_image.get("image_url"),
-                    "prompt_used": trend_image.get("prompt_used"),
+                    "interest": interest,
+                    "image_url": image_data.get("image_url"),
+                    "prompt_used": image_data.get("prompt_used"),
                     "status": "generated"
                 })
-
-        if not user_images:
-            user_images = [{
-                "trend_category": "default",
-                "image_url": None,
-                "status": "no_matching_trends",
-                "message": "No images generated for user's matched trends"
-            }]
+            else:
+                user_images.append({
+                    "interest": interest,
+                    "image_url": None,
+                    "status": "failed",
+                    "message": f"Image generation failed for interest: {interest}"
+                })
 
         result = {
             "user_id": user_id,
             "user_name": match_result["user_name"],
-            "matched_interests": match_result["matched_interests"],
-            "match_count": match_result["match_count"],
+            "interests": user_interests,
             "generated_images": user_images,
             "images_count": len([img for img in user_images if img.get("image_url")])
         }
         campaign_results.append(result)
 
     logger.info(
-        f" Step 8 Complete: Mapped images to {len(campaign_results)} users")
+        f"✅ Step 8 Complete: Mapped {len(user_interest_images)} images to {len(campaign_results)} users")
 
     logger.info("=" * 70)
-    logger.info(" CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
+    logger.info("🎉 CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
     logger.info("=" * 70)
-    logger.info(" API USAGE STATISTICS:")
+    logger.info("📈 API USAGE STATISTICS:")
     logger.info(
         f"   • OpenAI GPT-4o-mini calls: {api_calls['openai_gpt4o_mini']}")
     logger.info(f"   • OpenAI GPT-4o calls: {api_calls['openai_gpt4o']}")
     logger.info(
-        f"   • Black Forest image generations: {api_calls['black_forest']}/{MAX_IMAGES_PER_CAMPAIGN}")
+        f"   • Black Forest image generations: {api_calls['black_forest']} ({IMAGES_PER_USER} per user × {len(campaign_results)} users)")
     logger.info(
         f"   • Total OpenAI API calls: {api_calls['openai_gpt4o_mini'] + api_calls['openai_gpt4o']}")
     logger.info("=" * 70)
@@ -654,18 +652,16 @@ async def generate_campaign(
         "product_image_path": image_path,
         "total_trends_analyzed": len(trends),
         "filtered_trends_count": len(filtered_trends),
-        "selected_trends_count": len(selected_trends),
-        "selected_trends": [{"category": t["category"], "interests": t["interests"], "user_matches": trend_user_counts.get(t["category"], 0)} for t in selected_trends],
-        "trend_images_generated": len(trend_images),
+        "images_per_user": IMAGES_PER_USER,
         "users_targeted": len(campaign_results),
-        "total_user_images_mapped": total_images_generated,
+        "total_user_images_generated": total_images_generated,
         "preview_formats": preview_formats,
         "api_usage": {
             "openai_gpt4o_mini_calls": api_calls["openai_gpt4o_mini"],
             "openai_gpt4o_calls": api_calls["openai_gpt4o"],
             "black_forest_calls": api_calls["black_forest"],
             "total_openai_calls": api_calls["openai_gpt4o_mini"] + api_calls["openai_gpt4o"],
-            "image_limit": MAX_IMAGES_PER_CAMPAIGN,
+            "images_per_user": IMAGES_PER_USER,
             "optimization_limit": MAX_TRENDS_FOR_OPTIMIZATION
         },
         "results": campaign_results
@@ -701,5 +697,3 @@ async def get_user_image(user_id: int):
         )
 
     return image
-
-
