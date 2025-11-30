@@ -105,7 +105,7 @@ class ImagePromptBuilder:
         user_occupation = user_data['demographics'].get(
             'occupation', 'Professional')
         user_location = user_data.get('location', 'City')
-        user_language = user_data.get('language', 'en')
+        user_language = user_data.get('language')
 
         # Get top 3 trending interests
         top_interests = [m['interest']

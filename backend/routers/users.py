@@ -224,6 +224,11 @@ async def generate_campaign(
         image_path = await save_uploaded_image(product_image)
         logger.info(f"✅ Step 1 Complete: Image saved to {image_path}")
 
+        # Analyze image with OpenAI Vision
+        logger.info("🔍 Analyzing image with OpenAI Vision...")
+        image_analysis = await openai_service.analyze_image(image_path)
+        logger.info("✅ Image analysis complete")
+
         # Convert image to JPEG format (Black Forest API requirement)
         # Open image and convert to RGB (removes alpha channel if present)
         img = Image.open(image_path)
@@ -397,7 +402,8 @@ async def generate_campaign(
                        "demographics": {"occupation": "General"}},
             matched_interests=[{"interest": interest, "category": trend_category}
                                for interest in trend_interests[:3]],
-            base_structured_prompt=structured_prompt
+            base_structured_prompt=structured_prompt,
+            image_analysis=image_analysis
         )
 
         trend_prompts[trend_category] = optimized_prompt

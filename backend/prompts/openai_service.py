@@ -22,12 +22,64 @@ class OpenAIService:
             logger.warning(
                 "OPENAI_API_KEY not set - Falling back to rule-based prompts")
 
+    async def analyze_image(self, image_path: str) -> str:
+        """
+        Analyzes the uploaded image using GPT-4o Vision to get a detailed description
+        following specific guidelines for text, placement, style, font size, and color.
+        """
+        if not self.client:
+            return "Product image"
+
+        try:
+            import base64
+            
+            # Determine mime type
+            mime_type = "image/jpeg"
+            if image_path.lower().endswith(".png"):
+                mime_type = "image/png"
+            elif image_path.lower().endswith(".webp"):
+                mime_type = "image/webp"
+            
+            with open(image_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+            system_message = """You are an expert in analyzing product images for advertising.
+Describe the image following these strict guidelines:
+1. Use quotation marks for any visible text: "The text 'OPEN' appears in red neon letters above the door"
+2. Specify placement: Where text appears relative to other elements
+3. Describe style: "elegant serif typography", "bold industrial lettering", "handwritten script"
+4. Font size: "large headline text", "small body copy", "medium subheading"
+5. Color: Use hex codes for brand text if possible, or precise color names: "The logo text 'ACME' in color #FF5733"
+6. Describe the product's key visual characteristics, perspective, and composition.
+"""
+            
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": "Analyze this product image for use in an image generation prompt."},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}}
+                    ]}
+                ],
+                max_tokens=300
+            )
+            
+            analysis = response.choices[0].message.content.strip()
+            logger.info(f"Image Analysis Result: {analysis[:100]}...")
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"Error in OpenAI vision analysis: {str(e)}")
+            return "Product image"
+
     async def optimize_image_prompt(
         self,
         product_description: str,
         user_data: Dict[str, Any],
         matched_interests: List[Dict[str, Any]],
-        base_structured_prompt: Dict[str, Any]
+        base_structured_prompt: Dict[str, Any],
+        image_analysis: Optional[str] = None
     ) -> str:
         """
         Uses OpenAI to refine and optimize the image generation prompt
@@ -38,6 +90,7 @@ class OpenAIService:
             user_data: User demographic and interest data
             matched_interests: List of matched trending interests
             base_structured_prompt: Structured prompt from image_prompt_builder
+            image_analysis: Optional analysis of the input image
 
         Returns:
             Optimized text prompt for FLUX.2 image generation
@@ -51,44 +104,47 @@ class OpenAIService:
             user_age = user_data.get('age', 30)
             user_occupation = user_data['demographics'].get(
                 'occupation', 'Professional')
+            user_language = user_data.get('language', 'de')
             top_interests = [m['interest']
                              for m in matched_interests[:3]] if matched_interests else []
 
             system_message = """You are an expert in crafting prompts for FLUX.2 image generation by Black Forest Labs.
-Your task is to optimize advertising image prompts for image-to-image generation with product reference.
+Your task is to optimize advertising image prompts following the structure: Subject + Action + Style + Context.
 
-CRITICAL RULES for FLUX.2 with Image Reference:
-1. The product image is PROVIDED as reference - focus on SCENE COMPOSITION and BACKGROUND
-2. Describe how to integrate the product into trending lifestyle scenes
-3. Keep prompts 50-100 words (concise but descriptive)
-4. Use professional product photography terminology
-5. Integrate trending interests SUBTLY in background elements and mood
-6. Format: Scene Setup → Background Elements → Lighting → Mood → Composition
-7. Avoid describing the product itself - it's already in the reference image
+CRITICAL RULES for FLUX.2:
+1. Word order matters - most important elements FIRST
+2. Keep prompts 50-100 words (concise but descriptive)
+3. Use commercial photography terminology
+4. Integrate trending interests SUBTLY in background/mood/setting
+5. Focus on product as hero, trends enhance atmosphere
+6. Avoid overloading - quality over quantity
 
-Example structure: "Professional studio product photography with [product] as hero product, [trend-specific background elements] in soft focus, [lighting style], [mood], [composition]"
+Format: Subject (product), Action (display), Style (photography type), Context (setting, lighting, mood)"""
 
-The reference image contains the product. Your prompt should describe the SCENE around it."""
+            analysis_context = ""
+            if image_analysis:
+                analysis_context = f"\nIMAGE ANALYSIS (Incorporate these details):\n{image_analysis}"
 
-            user_message = f"""Optimize this advertising image prompt for FLUX.2 with product image reference:
+            user_message = f"""Optimize this advertising image prompt for FLUX.2:
 
-CONTEXT:
-- Product: {product_description}
-- Target Audience: {user_age} year old {user_occupation}
-- Trending Interests: {', '.join(top_interests)}
-- Note: Product image is provided as reference
+PRODUCT: {product_description}
+TARGET AUDIENCE: {user_age} year old {user_occupation}
+TARGET LANGUAGE: {user_language}
+TRENDING INTERESTS: {', '.join(top_interests)}{analysis_context}
 
 BASE PROMPT STRUCTURE:
 {json.dumps(base_structured_prompt, indent=2)}
 
 Create an optimized FLUX.2 prompt that:
-1. Focuses on SCENE COMPOSITION around the product (already in reference image)
-2. Integrates trending interests as subtle BACKGROUND ELEMENTS
-3. Uses professional product photography terminology
-4. Describes lighting, mood, and composition
-5. Keeps the product as hero but describes the lifestyle scene around it
-
-REMEMBER: Don't describe the product itself - describe the SCENE, BACKGROUND, LIGHTING, and MOOD.
+1. Showcases the product prominently (hero element)
+2. Subtly integrates trending interests in background/atmosphere
+3. Appeals to target demographic emotionally
+4. Uses professional photography language
+5. Follows Subject → Action → Style → Context structure
+6. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+7. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
+8. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
+9. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
 
 OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
 
