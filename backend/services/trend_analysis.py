@@ -14,7 +14,7 @@ class TrendAnalysisService:
         self.trends_data: Dict[str, Any] = {}
         self.last_update: datetime | None = None
         self.trends_file = Path(__file__).parent.parent / \
-            "data" / "trends.json"
+            "data" / "trends_short.json"
 
     def _load_trends_from_file(self) -> Dict[str, Any]:
         """Lädt Trend-Daten aus der trends.json Datei"""

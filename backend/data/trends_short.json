@@ -1,0 +1,60 @@
+{
+    "trends": [
+        {
+            "category": "Technology & AI",
+            "interests": [
+                "AI",
+                "Machine Learning",
+                "Smartphones",
+                "Programming",
+                "Data Science"
+            ],
+            "popularity_score": 92
+        },
+        {
+            "category": "Gaming",
+            "interests": [
+                "PC Gaming",
+                "Console Gaming",
+                "Esports",
+                "Game Streaming"
+            ],
+            "popularity_score": 88
+        },
+        {
+            "category": "Food & Cooking",
+            "interests": [
+                "Healthy Eating",
+                "Cooking",
+                "Meal Prep",
+                "Vegan Cooking"
+            ],
+            "popularity_score": 86
+        },
+        {
+            "category": "Sports & Fitness",
+            "interests": [
+                "Running",
+                "Fitness Training",
+                "Yoga",
+                "Trail Running"
+            ],
+            "popularity_score": 85
+        },
+        {
+            "category": "Travel & Adventure",
+            "interests": [
+                "Beach Holidays",
+                "Adventure Travel",
+                "Backpacking"
+            ],
+            "popularity_score": 78
+        }
+    ],
+    "metadata": {
+        "total_categories": 5,
+        "total_interests": 24,
+        "last_updated": "2025-11-30",
+        "version": "2.0-short"
+    }
+}
