@@ -436,8 +436,7 @@ async def generate_campaign(
         if isinstance(optimized_prompt, Exception):
             logger.error(
                 f"Error optimizing prompt for {data['category']}: {str(optimized_prompt)}")
-            # Fallback to basic prompt conversion
-            from prompts.image_prompt_builder import image_prompt_builder
+            # Fallback to basic prompt conversion (using already imported image_prompt_builder)
             optimized_prompt = image_prompt_builder.convert_to_simple_prompt(
                 data["structured_prompt"])
         trend_prompts[data["category"]] = optimized_prompt
