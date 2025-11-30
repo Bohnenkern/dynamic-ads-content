@@ -150,6 +150,7 @@ Create an optimized FLUX.2 prompt that:
 8. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
 9. CRITICAL: Any text found in the image analysis MUST be preserved exactly (1:1) in the generated image.
 10. CRITICAL: If the target audience language ({user_language}) is different from German, translate any text to {user_language}.
+11. Automatically decide and describe how the product should be actively used and staged in the scene to make it look interesting and cool for the specific user group, depending on the product.
 
 REMEMBER: 
 - Don't describe the product itself - describe the ATMOSPHERIC SCENE and ENVIRONMENT
