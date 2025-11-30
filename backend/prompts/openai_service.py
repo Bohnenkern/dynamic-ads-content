@@ -82,6 +82,8 @@ Create an optimized FLUX.2 prompt that:
 3. Appeals to target demographic emotionally
 4. Uses professional photography language
 5. Follows Subject → Action → Style → Context structure
+6. IMPORTANT: If the base prompt mentions using an input image, you MUST include "Use the product from the provided input image" in your output.
+7. IMPORTANT: If the base prompt contains a language instruction for text, you MUST include it in your output.
 
 OUTPUT: Only the final optimized prompt text (50-100 words), no explanations or markdown."""
 

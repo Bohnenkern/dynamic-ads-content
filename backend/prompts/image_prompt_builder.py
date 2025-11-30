@@ -16,7 +16,8 @@ class ImagePromptBuilder:
         product_description: str,
         trend_category: str,
         trend_interests: List[str],
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        has_input_image: bool = False
     ) -> Dict[str, Any]:
         """
         Builds a structured prompt for a specific trend category
@@ -26,6 +27,7 @@ class ImagePromptBuilder:
             trend_category: The trend category (e.g., "Technology", "Sports")
             trend_interests: List of interests in this trend category
             additional_context: Optional additional context
+            has_input_image: Whether an input image is provided
 
         Returns:
             Structured prompt dictionary following Black Forest guidelines
@@ -36,11 +38,15 @@ class ImagePromptBuilder:
         background = self._generate_background_for_category(
             trend_category, trend_interests)
 
+        subject_desc = product_description
+        if has_input_image:
+            subject_desc += ". The generated image must feature the product from the provided input image."
+
         structured_prompt = {
             "scene": f"Professional advertising photography with {product_description} as hero product",
             "subjects": [
                 {
-                    "description": product_description,
+                    "description": subject_desc,
                     "pose": "Prominently displayed with appealing presentation",
                     "position": "Center foreground on clean surface",
                     "color_palette": color_palette[:2]
@@ -79,7 +85,8 @@ class ImagePromptBuilder:
         product_description: str,
         user_data: Dict[str, Any],
         matched_interests: List[Dict[str, Any]],
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        has_input_image: bool = False
     ) -> Dict[str, Any]:
         """
         Builds a structured JSON prompt for Black Forest Labs API
@@ -89,6 +96,7 @@ class ImagePromptBuilder:
             user_data: User demographic and interest data
             matched_interests: List of matched trending interests
             additional_context: Optional additional context for the scene
+            has_input_image: Whether an input image is provided
 
         Returns:
             Structured prompt dictionary following Black Forest guidelines
@@ -112,12 +120,16 @@ class ImagePromptBuilder:
         style = self._determine_visual_style(user_age, user_occupation)
         color_palette = self._generate_color_palette(matched_interests)
 
+        subject_desc = product_description
+        if has_input_image:
+            subject_desc += ". The generated image must feature the product from the provided input image."
+
         # Build the structured prompt
         structured_prompt = {
             "scene": f"Professional advertising photography setup with {product_description} as the hero product",
             "subjects": [
                 {
-                    "description": product_description,
+                    "description": subject_desc,
                     "pose": "Prominently displayed with appealing presentation",
                     "position": "Center foreground on clean surface",
                     "color_palette": color_palette[:2]

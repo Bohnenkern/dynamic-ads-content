@@ -309,7 +309,8 @@ async def generate_campaign(
                 structured_prompt = image_prompt_builder.build_structured_prompt(
                     product_description=product_description,
                     user_data=user_data,
-                    matched_interests=match_result["matched_interests"]
+                    matched_interests=match_result["matched_interests"],
+                    has_input_image=(image_path is not None)
                 )
                 structured_prompts[user_id] = structured_prompt
                 user_matches[user_id] = match_result
@@ -328,7 +329,8 @@ async def generate_campaign(
         structured_prompt = image_prompt_builder.build_prompt_for_trend(
             product_description=product_description,
             trend_category=trend_category,
-            trend_interests=trend_interests
+            trend_interests=trend_interests,
+            has_input_image=(image_path is not None)
         )
 
         optimized_prompt = await openai_service.optimize_image_prompt(
@@ -350,7 +352,8 @@ async def generate_campaign(
         f"🎨 Step 7: Generating images for {len(trend_prompts)} trends with Black Forest API...")
     trend_images = await image_service.generate_images_for_trends(
         trend_prompts=trend_prompts,
-        product_name=product_description.split()[0]
+        product_name=product_description.split()[0],
+        input_image_path=image_path
     )
 
     for trend_category, image_data in trend_images.items():

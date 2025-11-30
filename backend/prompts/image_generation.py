@@ -3,6 +3,8 @@ import logging
 import os
 import httpx
 import json
+import base64
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +173,8 @@ class ImageGenerationService:
         trend_category: str,
         product_name: str = "product",
         width: int = 1024,
-        height: int = 768
+        height: int = 768,
+        input_image_path: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Generates an image for a specific trend category
@@ -182,6 +185,7 @@ class ImageGenerationService:
             product_name: Name of the product being advertised
             width: Image width
             height: Image height
+            input_image_path: Path to the input image (optional)
 
         Returns:
             Dictionary with image_url and metadata including trend_category
@@ -202,6 +206,31 @@ class ImageGenerationService:
                 f"Generating image for trend category: {trend_category}")
             logger.info(f"Prompt preview: {prompt_str[:150]}...")
 
+            # Prepare payload
+            payload = {
+                "prompt": prompt_str,
+                "width": width,
+                "height": height,
+                "prompt_upsampling": False,
+                "safety_tolerance": 2
+            }
+
+            # Handle input image if provided
+            if input_image_path:
+                try:
+                    image_path = Path(input_image_path)
+                    if image_path.exists():
+                        with open(image_path, "rb") as image_file:
+                            encoded_string = base64.b64encode(
+                                image_file.read()).decode('utf-8')
+                            # Add image_prompt to payload
+                            payload["image_prompt"] = encoded_string
+                            logger.info(f"Included input image from {input_image_path}")
+                    else:
+                        logger.warning(f"Input image path does not exist: {input_image_path}")
+                except Exception as img_err:
+                    logger.error(f"Failed to process input image: {str(img_err)}")
+
             # Real Black Forest Labs API Integration
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -210,13 +239,7 @@ class ImageGenerationService:
                         "X-Key": self.black_forest_api_key,
                         "Content-Type": "application/json"
                     },
-                    json={
-                        "prompt": prompt_str,
-                        "width": width,
-                        "height": height,
-                        "prompt_upsampling": False,
-                        "safety_tolerance": 2
-                    },
+                    json=payload,
                     timeout=60.0
                 )
                 result = response.json()
@@ -266,7 +289,8 @@ class ImageGenerationService:
     async def generate_images_for_trends(
         self,
         trend_prompts: Dict[str, str],
-        product_name: str = "product"
+        product_name: str = "product",
+        input_image_path: Optional[str] = None
     ) -> Dict[str, Dict[str, Any]]:
         """
         Generates images for multiple trend categories
@@ -274,6 +298,7 @@ class ImageGenerationService:
         Args:
             trend_prompts: Dictionary with trend_category -> prompt mappings
             product_name: Name of the product being advertised
+            input_image_path: Path to the input image (optional)
 
         Returns:
             Dictionary with trend_category -> result mappings (containing image_url and metadata)
@@ -284,7 +309,8 @@ class ImageGenerationService:
             result = await self.generate_image_for_trend(
                 prompt=prompt,
                 trend_category=trend_category,
-                product_name=product_name
+                product_name=product_name,
+                input_image_path=input_image_path
             )
             if result:
                 results[trend_category] = result
