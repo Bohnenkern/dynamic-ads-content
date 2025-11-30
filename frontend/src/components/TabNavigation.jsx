@@ -8,6 +8,7 @@ const TabNavigation = ({ activeTab, onTabChange }) => {
     { id: 'user3', label: 'User 3', isPrimary: false },
     { id: 'user4', label: 'User 4', isPrimary: false },
     { id: 'user5', label: 'User 5', isPrimary: false },
+    { id: 'preview', label: 'Preview', isPrimary: false },
   ]
 
   return (

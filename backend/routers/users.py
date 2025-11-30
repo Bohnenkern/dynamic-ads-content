@@ -4,6 +4,8 @@ from pydantic import BaseModel
 import logging
 import json
 import shutil
+import asyncio
+import random
 from pathlib import Path
 from datetime import datetime
 
@@ -487,6 +489,66 @@ async def generate_campaign(
 
     logger.info(
         f"✅ Step 8 Complete: Mapped images to {len(campaign_results)} users")
+
+    # STEP 9: Generate Preview Formats for a random user
+    logger.info("🎨 Step 9: Generating Preview Formats for a random user...")
+    preview_formats = {}
+    if match_results:
+        import random
+        random_user_match = random.choice(match_results)
+        random_user_id = random_user_match["user_id"]
+        random_user_data = user_service.get_user_by_id(random_user_id)
+        
+        # Get structured prompt
+        user_structured_prompt = structured_prompts.get(random_user_id)
+        
+        if user_structured_prompt and random_user_data:
+            # Optimize prompt for this user
+            user_optimized_prompt = await openai_service.optimize_image_prompt(
+                product_description=product_description,
+                user_data=random_user_data,
+                matched_interests=random_user_match.get("matched_interests", []),
+                base_structured_prompt=user_structured_prompt,
+                image_analysis=image_analysis
+            )
+            
+            # Generate 3 formats
+            # Use asyncio.gather for parallel generation
+            preview_tasks = [
+                image_service.generate_image_for_trend(
+                    prompt=user_optimized_prompt,
+                    trend_category="preview_banner",
+                    width=1280,
+                    height=320,
+                    reference_image_url=image_base64_uri
+                ),
+                image_service.generate_image_for_trend(
+                    prompt=user_optimized_prompt,
+                    trend_category="preview_vertical",
+                    width=512,
+                    height=1024,
+                    reference_image_url=image_base64_uri
+                ),
+                image_service.generate_image_for_trend(
+                    prompt=user_optimized_prompt,
+                    trend_category="preview_rectangular",
+                    width=768,
+                    height=768,
+                    reference_image_url=image_base64_uri
+                )
+            ]
+            
+            preview_results = await asyncio.gather(*preview_tasks)
+            
+            preview_formats = {
+                "user_id": random_user_id,
+                "user_name": random_user_data.get("name"),
+                "banner": preview_results[0],
+                "vertical": preview_results[1],
+                "rectangular": preview_results[2]
+            }
+            logger.info(f"✅ Step 9 Complete: Generated preview formats for {random_user_data.get('name')}")
+
     logger.info("=" * 70)
     logger.info("🎉 CAMPAIGN GENERATION COMPLETED SUCCESSFULLY")
     logger.info("=" * 70)
@@ -514,6 +576,7 @@ async def generate_campaign(
         "trend_images_generated": len(trend_images),
         "users_targeted": len(campaign_results),
         "total_user_images_mapped": total_images_generated,
+        "preview_formats": preview_formats,
         "api_usage": {
             "openai_gpt4o_mini_calls": api_calls["openai_gpt4o_mini"],
             "openai_gpt4o_calls": api_calls["openai_gpt4o"],
@@ -555,3 +618,5 @@ async def get_user_image(user_id: int):
         )
 
     return image
+
+

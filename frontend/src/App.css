@@ -13,6 +13,10 @@
   margin: 0 auto;
 }
 
+.app.preview-mode {
+  background: #222; /* Darker gray for preview mode */
+}
+
 @media (max-width: 768px) {
   .app-content {
     padding: 1rem;
