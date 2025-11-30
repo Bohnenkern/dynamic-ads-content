@@ -1,4 +1,4 @@
-# Dynamic Ads Content Generator
+# ON POINT
 
 An AI-powered full-stack application that generates personalized advertising content for users based on their interests. The system uses OpenAI GPT-4o for prompt optimization and Black Forest Labs FLUX.2 for image generation, creating unique ads tailored to each user's profile.
 
