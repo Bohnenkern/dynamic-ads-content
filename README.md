@@ -1,3 +1,26 @@
+Backend starten:
+
+# In den Backend-Ordner wechseln
+cd backend
+
+# Server starten
+python main.py
+
+Start Frontend:
+
+# In den Frontend-Ordner wechseln
+cd frontend
+
+# Falls noch nicht geschehen, Abhängigkeiten installieren:
+npm install
+
+# Entwicklungsserver starten
+npm run dev
+
+
+
+
+
 # ON POINT
 
 An AI-powered full-stack application that generates personalized advertising content for users based on their interests. The system uses OpenAI GPT-4o for prompt optimization and Black Forest Labs FLUX.2 for image generation, creating unique ads tailored to each user's profile.
